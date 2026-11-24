@@ -131,7 +131,7 @@ jobs:
                 if(!frameCanvas||!state.world||!state.worldVisible||state.syntheticCashCanvas||
                    state.balance!=='—'||!state.connection?.includes('not connected')||
                    state.numberOfCashActions!==4||!state.hologramMenu||state.fixedTopLogo||
-                   !state.navAboveWorld||errors.length)failed=true;
+                   !state.navAboveWorld||state.diagnostic.fullscreen||errors.length)failed=true;
                 await page.locator('#oneage-hologram-menu').click({timeout:7000});
                 const menu=page.locator('#cash-panel');
                 const store=menu.locator('a.holo-menu-link[href="https://1age.store/"]');
