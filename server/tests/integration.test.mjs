@@ -74,6 +74,14 @@ if (!url) {
       assert.equal((await fetch('http://127.0.0.1:4329/server/index.mjs')).status,404);
       assert.equal((await fetch('http://127.0.0.1:4329/server/schema.sql')).status,404);
       assert.equal((await fetch('http://127.0.0.1:4329/docs/CASH-3D-STRIPE-SANDBOX-001.md')).status,404);
+      const catalogResponse=await fetch('http://127.0.0.1:4329/api/cash/catalog');
+      assert.equal(catalogResponse.status,200);
+      assert.deepEqual(await catalogResponse.json(),{items:[],redemption_enabled:false});
+      const forbidden=await fetch('http://127.0.0.1:4329/api/cash/redeem',{
+        method:'POST',headers:{'content-type':'application/json'},
+        body:JSON.stringify({sku:'test_avatar',request_key:randomUUID()})
+      });
+      assert.equal(forbidden.status,401,'Unauthenticated redemption must never be accepted');
       const noAuth=await fetch('http://127.0.0.1:4329/api/cash/me');
       assert.equal(noAuth.status,401);
       const paidEvent={
