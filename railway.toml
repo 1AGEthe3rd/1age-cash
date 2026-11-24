@@ -2,7 +2,7 @@
 # Requires approved OIDC, managed PostgreSQL and secured test environment.
 [build]
 builder = "NIXPACKS"
-buildCommand = "npm install --omit=dev --no-audit --no-fund"
+buildCommand = "npm install --omit=dev --no-audit --no-fund && npm run build:identity"
 
 [deploy]
 startCommand = "npm start"
