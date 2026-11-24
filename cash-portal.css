@@ -90,3 +90,14 @@ button{cursor:pointer;font:inherit;color:inherit}button:focus-visible,a:focus-vi
   .cash-header{top:calc(env(safe-area-inset-top) + 8px)}
 }
 @media(prefers-reduced-motion:reduce){.holo-face,.holo-orbit{animation:none!important}.holo-face,.holo-menu-link{transition:none!important}}
+
+/* Explicit stacking: embedded Godot remains touchable wherever the Cash HUD is
+   absent, while account holograms receive taps above the cross-origin iframe. */
+#cash-scene.world-host{z-index:0}
+.cash-header{z-index:32}
+.hologram-menu{z-index:33}
+.core-label{z-index:29}
+.world-direct{z-index:26}
+#cash-actions{z-index:34}
+.hint{z-index:30}
+#cash-panel{z-index:40}
