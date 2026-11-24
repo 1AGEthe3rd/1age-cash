@@ -1,1 +1,50 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#000000"><title>1AGE Cash · World Platform</title><style>html,body{height:100%;width:100%;margin:0;overflow:hidden;background:#000;color:#e2ffdc}body{overscroll-behavior:none;touch-action:none}main{position:fixed;inset:0}iframe{display:block;width:100%;height:100%;border:0;background:#000}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}</style></head><body><main aria-label="1AGE Cash 3D platform"><iframe title="1AGE Cash in 1AGE World" src="https://1age.world/?platform=cash" allow="autoplay; fullscreen; gamepad" allowfullscreen loading="eager"></iframe><p class="sr-only">Shared 1AGE World environment. Touch the gamepad or use a controller to explore.</p></main><noscript><a href="https://1age.world/?platform=cash">Open 1AGE Cash</a></noscript></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <meta name="description" content="1AGE Cash — your wallet-free internal credits inside the 1AGE ecosystem.">
+  <title>1AGE Cash — Virtual Credit Center</title>
+  <link rel="icon" type="image/svg+xml" href="./assets/app-icons/cash.svg">
+  <link rel="stylesheet" href="./cash-portal.css">
+</head>
+<body>
+  <main id="cash-app">
+    <div id="cash-scene" role="group" tabindex="0" aria-label="Interactive 3D Cash center. Drag to orbit or select destinations using the controls.">
+      <p class="scene-fallback" hidden>3D graphics are unavailable in this browser. The Cash controls remain accessible.</p>
+    </div>
+    <header class="cash-header">
+      <a href="https://1age.com/" class="brand" aria-label="Return to 1AGE.com">
+        <img src="./assets/1age-logo.svg" alt="" width="44" height="44">
+        <span><b>1AGE</b><small>CASH</small></span>
+      </a>
+      <span id="cash-connection" class="connection" role="status">Secure account not connected</span>
+      <button id="cash-info" class="round-button" aria-label="About 1AGE Cash" title="About Cash">?</button>
+    </header>
+    <section id="cash-core-label" class="core-label" aria-live="polite">
+      <span class="eyebrow">YOUR CASH</span>
+      <strong id="cash-balance">—</strong>
+      <span id="cash-balance-caption">Sign in required for your balance</span>
+    </section>
+    <nav id="cash-actions" aria-label="Cash destinations">
+      <button type="button" data-action="balance" aria-current="true">Balance</button>
+      <button type="button" data-action="add">Add Cash</button>
+      <button type="button" data-action="activity">Activity</button>
+      <button type="button" data-action="use">Use Cash</button>
+    </nav>
+    <p class="hint" id="cash-hint">Rotate your Cash universe. Select a station to explore.</p>
+    <dialog id="cash-panel" aria-labelledby="cash-panel-title">
+      <div class="panel-heading">
+        <span class="eyebrow">1AGE CASH</span>
+        <button id="close-panel" type="button" class="round-button" aria-label="Close panel">×</button>
+      </div>
+      <h1 id="cash-panel-title">Your Cash</h1>
+      <div id="cash-panel-content"></div>
+      <p class="disclosure">Internal credits only · Not a bank account, cryptocurrency, or withdrawable cash.</p>
+    </dialog>
+    <noscript><p class="noscript-note">JavaScript is needed for the 3D Cash environment. 1AGE Cash does not accept payments on this page without a secure backend.</p></noscript>
+  </main>
+  <script type="module" src="./cash-portal.mjs"></script>
+</body>
+</html>
