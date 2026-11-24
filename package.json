@@ -12,6 +12,7 @@
   "scripts": {
     "start": "node server/index.mjs",
     "test": "node --test server/tests/*.test.mjs",
-    "check": "node --check server/index.mjs && node --check server/catalog.mjs && node --check server/redemption.mjs && node --check server/identity.mjs"
+    "check": "node --check server/index.mjs && node --check server/catalog.mjs && node --check server/redemption.mjs && node --check server/identity.mjs && node --check cash-identity.mjs && node --check cash-portal.mjs && node --check server/build-identity.mjs",
+    "build:identity": "npm run build:identity --workspace server"
   }
 }

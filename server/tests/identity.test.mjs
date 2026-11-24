@@ -31,4 +31,8 @@ test('signed short-lived Cash tokens only; isolate owners and reject bad claims'
   ]) await assert.rejects(async()=>verify(await sign(claims)));
   await assert.rejects(async()=>verify(await sign(valid,foreign.privateKey)));
   await assert.rejects(()=>verify('not-a-token'));
+  const cashBrowser = createIdentityVerifier({...config,browserClient:'1age-cash'},publicKey);
+  assert.equal(await cashBrowser(await sign({...valid,azp:'1age-cash',typ:'Bearer'})),config.issuer+'#account-001');
+  await assert.rejects(async()=>cashBrowser(await sign({...valid,azp:'1age-page',typ:'Bearer'})));
+  await assert.rejects(async()=>cashBrowser(await sign({...valid,azp:'1age-cash',typ:'ID'})));
 });

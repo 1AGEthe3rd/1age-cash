@@ -43,7 +43,9 @@ jobs:
         run: |
           npm install --prefix server --no-package-lock
           node --check server/identity.mjs
-          node --test server/tests/identity.test.mjs
+          npm --prefix server run build:identity
+          node --check cash-identity.mjs
+          node --test server/tests/identity.test.mjs server/tests/browser-identity.test.mjs
           node --test server/tests/integration.test.mjs
           node --test server/tests/redemption.test.mjs
       - name: Install isolated browser test runner

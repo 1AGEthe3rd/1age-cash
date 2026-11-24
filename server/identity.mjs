@@ -19,7 +19,7 @@ export function identityConfig(env) {
   if (new URL(issuer).search) throw Error('AUTH_ISSUER cannot contain a query');
   if (typeof audience !== 'string' || !audience.trim() || audience !== audience.trim())
     throw Error('AUTH_AUDIENCE must be the dedicated Cash API audience');
-  return { issuer, audience, jwksUrl };
+  return { issuer, audience, jwksUrl, browserClient: env.AUTH_BROWSER_CLIENT_ID || null };
 }
 
 export function createIdentityVerifier(config, key = createRemoteJWKSet(new URL(config.jwksUrl))) {
@@ -30,6 +30,8 @@ export function createIdentityVerifier(config, key = createRemoteJWKSet(new URL(
       requiredClaims: ['sub', 'iat', 'exp'],
       maxTokenAge: '15m', clockTolerance: 5
     });
+    if (config.browserClient && (payload.azp !== config.browserClient || payload.typ !== 'Bearer'))
+      throw Error('Expected Cash browser access token');
     if (!isSafeOwner(payload.sub) || /[\u0000-\u001f\u007f]/u.test(payload.sub))
       throw Error('Invalid token subject');
     if (!Number.isSafeInteger(payload.iat) || !Number.isSafeInteger(payload.exp) ||

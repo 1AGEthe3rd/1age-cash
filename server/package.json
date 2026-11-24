@@ -8,12 +8,15 @@
   "scripts": {
     "start": "node index.mjs",
     "test": "node --test tests/*.test.mjs",
-    "check": "node --check index.mjs && node --check policy.mjs"
+    "check": "node --check index.mjs && node --check policy.mjs",
+    "build:identity": "node build-identity.mjs"
   },
   "dependencies": {
     "express": "^4.21.2",
     "jose": "^5.9.6",
     "pg": "^8.13.3",
-    "stripe": "^18.4.0"
+    "stripe": "^18.4.0",
+    "keycloak-js": "26.2.5",
+    "esbuild": "0.25.12"
   }
 }

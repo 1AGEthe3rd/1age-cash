@@ -1,6 +1,7 @@
 // Cash-native account actions over the *actual* approved 1AGE World runtime.
 // Never invent a replacement sphere, starfield, or generic Godot/WebGL fallback.
 
+import { initializeIdentity } from './cash-identity.mjs';
 const root = document.querySelector('#cash-scene');
 const status = document.querySelector('#cash-connection');
 const label = document.querySelector('#cash-balance');
@@ -15,7 +16,8 @@ const walletTrigger = document.querySelector('#cash-core-label');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const tabs = ['balance', 'add', 'activity', 'use'];
 const hologramMenu = document.querySelector('#oneage-hologram-menu');
-let panelTrigger = null;
+let panelTrigger = null, activePanel = 'balance', accountRevision = 0;
+let authState = 'loading';
 const state = { account: null, connected: false, checkoutEnabled: false, redemptionEnabled: false, busy: false, selected: 'balance' };
 const amount = n => (n / 100).toFixed(2);
 const textNode = (tag, value, className = '') => {
@@ -51,8 +53,10 @@ async function api(path, payload) {
   return result;
 }
 async function loadAccount() {
+  const revision = ++accountRevision;
   try {
     const info = await api('me');
+    if (revision !== accountRevision) return;
     if (!Number.isSafeInteger(info.balance_minor) || !Array.isArray(info.transactions)) throw Error('Invalid account response');
     state.connected = true;
     state.account = info;
@@ -63,6 +67,7 @@ async function loadAccount() {
     state.checkoutEnabled = info.checkout_test_enabled === true;
     state.redemptionEnabled = info.redemption_enabled === true;
   } catch {
+    if (revision !== accountRevision) return;
     state.connected = false;
     state.account = null;
     state.checkoutEnabled = false;
@@ -73,6 +78,22 @@ async function loadAccount() {
     caption.textContent = 'Sign in required for your balance';
   }
 }
+function appendIdentityAction() {
+  const identity = window.OneAgeIdentity;
+  if (!identity) { content.append(note(authState === 'loading' ? 'Connecting identity…' : 'Secure sign-in is unavailable on this preview.')); return; }
+  const signed = identity.signedIn();
+  const button = textNode('button',signed ? 'Sign out' : 'Sign in to 1AGE','panel-action');
+  button.type = 'button';
+  button.addEventListener('click',async()=>{
+    button.disabled = true;
+    try {
+      if (signed) await identity.logout();
+      else await identity.login();
+    } catch { content.append(note('Unable to complete sign-in or sign-out. Try again.')); }
+    finally { button.disabled = false; }
+  });
+  content.append(button);
+}
 function activate(name, open = true) {
   if (!tabs.includes(name)) name = 'balance';
   state.selected = name;
@@ -81,6 +102,7 @@ function activate(name, open = true) {
   if (open) renderPanel(name);
 }
 function renderPanel(name) {
+  activePanel = name;
   title.textContent = ({balance:'Cash Balance',add:'Add Cash',activity:'Activity',use:'Use Cash',about:'About 1AGE Cash',menu:'1AGE'})[name] || '1AGE Cash';
   // Restore focus to the original scene control, even after switching from
   // the 1AGE hologram menu into its settings view while the dialog is open.
@@ -105,13 +127,15 @@ function renderPanel(name) {
     home.href='https://1age.com/'; home.rel='noopener noreferrer';
     utilities.append(settings,home);
     content.append(utilities);
+    appendIdentityAction();
   } else if (name === 'about') {
     content.append(paragraph('1AGE Cash is an internal account credit for eligible experiences inside 1AGE. A wallet and blockchain address are not required.'));
     content.append(paragraph('It is separate from the $1AGE cryptocurrency and from 1AGE Exchange. Cash is not a deposit, investment, or transferable digital currency.'));
   } else if (name === 'balance') {
     content.append(textNode('div', state.connected ? amount(Math.max(0, state.account.balance_minor)) + ' Cash' : '—', 'panel-value'));
-    content.append(state.connected ? paragraph('Your balance is maintained by the secure server. Your transaction history is available in Activity.') : note('The account service and 1AGE Page sign-in have not been linked to this public site. No balance is invented or stored in your browser.'));
+    content.append(state.connected ? paragraph('Your balance is maintained by the secure server. Your transaction history is available in Activity.') : note('Sign in with your 1AGE account to see your server-maintained balance.'));
     if (state.account?.suspended) content.append(note('Spending and new credits are temporarily restricted pending review.'));
+    appendIdentityAction();
   } else if (name === 'add') {
     content.append(paragraph('Choose a one-time amount. Payment processing and credit issuance must be verified by the server.'));
     const options = [500, 1000, 2000];
@@ -156,7 +180,7 @@ function renderPanel(name) {
     items.setAttribute('aria-live', 'polite');
     content.append(items);
     if (!state.connected) {
-      items.append(note('A secure 1AGE account is required. The Cash backend and Page sign-in are not connected to this site yet.'));
+      items.append(note('A secure 1AGE account is required. Open Balance to sign in.'));
     } else if (!state.redemptionEnabled) {
       items.append(note('Cash purchases are not enabled. There are no live items available to redeem.'));
     } else {
@@ -268,5 +292,17 @@ if (worldFrame && worldStatus) {
   });
 }
 activate('balance', false);
-loadAccount();
-window.addEventListener('oneage:identity-ready', () => loadAccount());
+async function syncIdentity() {
+  // Invalidate an in-flight balance request immediately when identity changes.
+  ++accountRevision;
+  state.account = null; state.connected = false; state.checkoutEnabled = false; state.redemptionEnabled = false;
+  label.textContent = '—'; caption.textContent = 'Sign in required for your balance';
+  status.classList.remove('connected'); status.textContent = 'Secure account not connected';
+  if (dialog.open) renderPanel(activePanel);
+  await loadAccount();
+  if (dialog.open) renderPanel(activePanel);
+}
+window.addEventListener('oneage:identity-ready',()=>{void syncIdentity();});
+initializeIdentity().then(adapter=>{authState=adapter?'ready':'unavailable';if(dialog.open)renderPanel(activePanel);}).catch(()=>{authState='unavailable';void syncIdentity();});
+window.addEventListener('pageshow',event=>{if(event.persisted)location.reload();});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible' && window.OneAgeIdentity?.signedIn())void syncIdentity();});

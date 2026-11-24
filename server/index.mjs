@@ -21,6 +21,8 @@ import { attachCashSite } from './static-site.mjs';
 const required = ['DATABASE_URL', 'AUTH_ISSUER', 'AUTH_AUDIENCE', 'AUTH_JWKS_URL'];
 for (const key of required) if (!process.env[key]) throw Error('Missing required environment configuration: ' + key);
 const authConfig = identityConfig(process.env);
+const browserClient = process.env.AUTH_BROWSER_CLIENT_ID || '';
+if (browserClient && browserClient !== '1age-cash') throw Error('Unexpected Cash browser client');
 
 const checkoutEnabled = process.env.CASH_ENABLE_TEST_CHECKOUT === 'true';
 const redemptionEnabled = process.env.CASH_ENABLE_REDEMPTION === 'true';
@@ -43,6 +45,7 @@ app.disable('x-powered-by');
 app.use((req, res, next) => {
   res.set('Cache-Control', 'no-store');
   res.set('X-Content-Type-Options', 'nosniff');
+  res.set('Referrer-Policy', 'no-referrer');
   next();
 });
 const json = express.json({ limit: '16kb' });
@@ -70,6 +73,10 @@ async function account(ownerId, client = pool) {
 }
 
 app.get('/healthz', (req, res) => res.json({ status: 'sandbox', accepts_live_payments: false }));
+app.get('/api/cash/identity-config', (req, res) => {
+  if (!browserClient) return res.json({enabled:false});
+  res.json({enabled:true, issuer:authConfig.issuer, clientId:browserClient});
+});
 
 app.get('/api/cash/me', identity, async (req, res) => {
   try {
