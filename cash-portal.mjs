@@ -284,7 +284,8 @@ function resize() {
   if(!renderer)return;
   const w=Math.max(1,root.clientWidth),h=Math.max(1,root.clientHeight);
   camera.aspect=w/h;
-  camera.position.set(0,2.1,w/h<.65?18:14);
+  camera.fov=w/h<.65?59:48;
+  camera.position.set(0,2.1,w/h<.65?25:14);
   camera.lookAt(0,-.10,0);
   camera.updateProjectionMatrix();
   renderer.setSize(w,h,false);
@@ -303,9 +304,8 @@ function draw(now) {
   for(const station of stations){
     station.halo.material.color.setHex(station.group.userData.tab===state.selected?0xe2ffdc:0x1bfd9c);
   }
-  camera.position.x=Math.sin(angle)*camera.position.z;
   camera.position.y=2.1+pitch*5;
-  const dist=camera.aspect<.65?18:14;
+  const dist=camera.aspect<.65?25:14;
   camera.position.z=Math.cos(angle)*dist;
   camera.position.x=Math.sin(angle)*dist;
   camera.lookAt(0,-.1,0);
