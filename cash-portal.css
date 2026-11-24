@@ -22,7 +22,42 @@ button{cursor:pointer;font:inherit;color:inherit}button:focus-visible,a:focus-vi
 @media(max-height:480px){.core-label{top:38%}.hint{display:none}#cash-actions{bottom:calc(env(safe-area-inset-bottom) + 6px)}#cash-panel{inset:calc(env(safe-area-inset-top) + 6px) 12px auto;max-height:calc(100dvh - 82px)}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 
-/* Keep original paired 1AGE joysticks visible without covering Cash actions. */
-body #oneage-controller .oneage-stick{bottom:calc(env(safe-area-inset-bottom) + 103px);opacity:.82;transform:scale(.85);transform-origin:bottom center}
-@media(max-width:620px){body #oneage-controller .oneage-stick{bottom:calc(env(safe-area-inset-bottom) + 93px);transform:scale(.78)}}
-@media(max-height:480px){body #oneage-controller .oneage-stick{bottom:calc(env(safe-area-inset-bottom) + 68px);transform:scale(.65)}}
+
+/* WORLD SOURCE OF TRUTH: no duplicate or procedurally generated globe or stars.
+   The original 1age.world Godot scene renders below Cash's own account stations. */
+#cash-scene{background:#000;touch-action:auto;overflow:hidden}
+.world-host iframe{position:absolute;inset:0;display:block;width:100%;height:100%;border:0;background:#000;touch-action:auto}
+.world-status{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);width:min(300px,85vw);text-align:center;background:#020905db;color:#e2ffdc;border:1px solid #1bfd9c66;border-radius:16px;padding:14px;font-size:12px;pointer-events:none}
+.world-status[hidden]{display:none}
+.world-direct{position:absolute;top:calc(env(safe-area-inset-top) + 78px);right:max(16px,env(safe-area-inset-right));border:1px solid #67ba8f7e;background:#06150cd9;border-radius:999px;color:#e2ffdc;text-decoration:none;font-size:12px;font-weight:600;letter-spacing:.04em;padding:10px 14px;z-index:7;box-shadow:0 9px 20px #000a}
+.world-direct:hover{background:#0a3320}
+.core-label{top:26%;left:auto;right:clamp(18px,6vw,85px);transform:perspective(920px) rotateY(-13deg);width:195px;padding:16px 12px;max-width:34vw;border:1px solid #1bfd9c80;border-radius:16px;background:linear-gradient(125deg,#081f17dd,#020a08bd);box-shadow:0 0 28px #00ff9928,0 12px 45px #000a;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);pointer-events:none}
+.core-label strong{font-size:clamp(29px,4.2vw,44px)}
+#cash-balance-caption{font-size:11px}
+#cash-actions{bottom:calc(env(safe-area-inset-bottom) + 129px);border:0;border-radius:0;background:transparent;box-shadow:none;gap:10px;transform:translateX(-50%);padding:0;max-width:95vw}
+#cash-actions button{min-width:97px;min-height:47px;border:1px solid #49b98880;border-radius:12px;background:linear-gradient(160deg,#082b1fcf,#030a08e6);box-shadow:0 10px 20px #000a,0 0 15px #1bfd9c23;transform:perspective(640px) rotateX(14deg);transition:transform .15s ease,box-shadow .15s ease;color:#edfff4;font-size:12px;font-weight:600;padding:11px 12px}
+#cash-actions button[aria-current="true"]{border-color:#85ffb9;background:linear-gradient(160deg,#28df9cd9,#095b3cbf);color:#e2ffdc;box-shadow:0 0 22px #1bfd9c55,0 12px 24px #000c}
+#cash-actions button:hover{transform:perspective(640px) rotateX(6deg) translateY(-4px)}
+.hint{bottom:calc(env(safe-area-inset-bottom) + 188px);color:#daeedc;text-shadow:0 2px 9px #000;font-size:10px}
+#cash-panel{bottom:calc(env(safe-area-inset-bottom) + 193px)}
+@media(max-width:620px){
+  .world-direct{top:calc(env(safe-area-inset-top) + 64px);right:10px;font-size:10px;padding:7px 9px}
+  .core-label{top:22%;right:12px;width:157px;max-width:48vw;padding:12px 8px}
+  .core-label strong{font-size:30px}
+  .core-label .eyebrow{font-size:9px}
+  #cash-balance-caption{font-size:9px}
+  #cash-actions{bottom:calc(env(safe-area-inset-bottom) + 122px);gap:5px}
+  #cash-actions button{min-width:0;width:clamp(70px,22vw,95px);padding:9px 5px;font-size:11px;min-height:43px}
+  .hint{bottom:calc(env(safe-area-inset-bottom) + 180px);width:95%;font-size:10px}
+  #cash-panel{bottom:calc(env(safe-area-inset-bottom) + 172px)}
+}
+@media(max-height:480px){
+  .world-direct{top:calc(env(safe-area-inset-top) + 53px)}
+  .core-label{top:27%;right:15%;width:160px;padding:8px}
+  .core-label strong{font-size:25px}
+  #cash-actions{bottom:calc(env(safe-area-inset-bottom) + 47px)}
+  #cash-actions button{min-height:36px;padding:5px 8px}
+  #cash-panel{inset:calc(env(safe-area-inset-top) + 52px) 12px auto;max-height:calc(100dvh - 110px)}
+  .hint{display:none}
+}
+@media(prefers-reduced-motion:reduce){#cash-actions button{transition:none}}
