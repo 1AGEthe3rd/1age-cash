@@ -10,6 +10,8 @@ const content = document.querySelector('#cash-panel-content');
 const title = document.querySelector('#cash-panel-title');
 const hint = document.querySelector('#cash-hint');
 const actions = [...document.querySelectorAll('#cash-actions button')];
+const stationDialog = document.querySelector('#cash-stations');
+const walletTrigger = document.querySelector('#cash-core-label');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const tabs = ['balance', 'add', 'activity', 'use'];
 const hologramMenu = document.querySelector('#oneage-hologram-menu');
@@ -163,7 +165,18 @@ function renderPanel(name) {
 
 hologramMenu?.addEventListener('click', () => renderPanel('menu'));
 document.querySelector('#close-panel').addEventListener('click', () => dialog.close());
-actions.forEach(button => button.addEventListener('click', () => activate(button.dataset.action)));
+walletTrigger?.addEventListener('click', () => {
+  if (!stationDialog.open) stationDialog.showModal();
+});
+document.querySelector('#close-stations')?.addEventListener('click', () => stationDialog.close());
+stationDialog?.addEventListener('close', () => {
+  if (!dialog.open) walletTrigger.focus({preventScroll:true});
+});
+actions.forEach(button => button.addEventListener('click', () => {
+  stationDialog?.close();
+  walletTrigger?.focus({preventScroll:true});
+  activate(button.dataset.action);
+}));
 dialog.addEventListener('close', () => {
   hologramMenu?.setAttribute('aria-expanded','false');
   panelTrigger?.focus({preventScroll:true});
@@ -171,9 +184,11 @@ dialog.addEventListener('close', () => {
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape' && dialog.open) dialog.close();
   else if (!dialog.open && !event.target.matches('input,textarea,button,a')) {
-    if (event.key === 'ArrowLeft') selectOffset(-1);
-    else if (event.key === 'ArrowRight') selectOffset(1);
-    else if (event.key === 'Enter' || event.key === ' ') {event.preventDefault(); activate(state.selected);}
+    if (event.key === 'ArrowLeft' && stationDialog?.open) selectOffset(-1);
+    else if (event.key === 'ArrowRight' && stationDialog?.open) selectOffset(1);
+    else if ((event.key === 'Enter' || event.key === ' ') && stationDialog?.open) {
+      event.preventDefault(); stationDialog.close(); walletTrigger.focus({preventScroll:true}); activate(state.selected);
+    }
   }
 });
 function selectOffset(delta) {
