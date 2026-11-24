@@ -1,4 +1,4 @@
-name: Validate Cash sandbox and 3D portal
+name: Validate Cash sandbox in real 1AGE World
 on:
   pull_request:
   workflow_dispatch:
@@ -7,7 +7,7 @@ permissions:
 jobs:
   checks-and-render:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 19
     services:
       postgres:
         image: postgres:16
@@ -46,7 +46,7 @@ jobs:
         run: |
           nohup python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/cash-portal-server.log 2>&1 &
           sleep 2
-      - name: Verify real 3D scene, menu and disabled payments
+      - name: Verify actual 1AGE World embed, Cash terminals and no fabricated stars
         run: |
           mkdir -p review
           node <<'NODE'
@@ -67,29 +67,47 @@ jobs:
               const errors=[];page.on('pageerror',e=>errors.push(e.message));
               try {
                 await page.goto('http://127.0.0.1:4173/',{waitUntil:'domcontentloaded',timeout:30000});
-                await page.waitForTimeout(3600);
+                const src=await page.locator('#oneage-world').getAttribute('src');
+                if(src!=='https://1age.world/?platform=cash')failed=true;
+                // The authentic World engine, celestial backdrop and gamepad
+                // remain in the original cross-origin Godot frame.
+                let frameCanvas=false,engineStatus='unknown';
+                try {
+                  await page.frameLocator('#oneage-world').locator('#canvas').waitFor({timeout:30000,state:'attached'});
+                  frameCanvas=true;
+                  await page.waitForTimeout(13000);
+                  engineStatus=await page.frameLocator('#oneage-world').locator('body').evaluate(body=>{
+                    const notice=body.querySelector('#status-notice')?.textContent||'';
+                    return {
+                      canvas:!!body.querySelector('#canvas'),
+                      statusOverlay:!!body.querySelector('#status'),
+                      error:notice.trim().slice(0,240)
+                    };
+                  });
+                }catch(error){console.error('World iframe load',name,String(error));failed=true;}
                 const state=await page.evaluate(()=>{
-                  const canvas=document.querySelector('#cash-scene canvas');
+                  const frame=document.querySelector('#oneage-world');
                   return {
-                    canvas:!!canvas,
-                    gl:!!(canvas?.getContext('webgl2')||canvas?.getContext('webgl')),
-                    sharedJoysticks:document.querySelectorAll('#oneage-controller .oneage-stick').length,
-                    accountLabel:document.querySelector('#cash-balance')?.textContent,
+                    world:!!frame,
+                    worldSrc:frame?.getAttribute('src'),
+                    worldVisible:!!frame&&getComputedStyle(frame).display!=='none',
+                    syntheticCashCanvas:!!document.querySelector('#cash-scene canvas'),
+                    balance:document.querySelector('#cash-balance')?.textContent,
                     connection:document.querySelector('#cash-connection')?.textContent,
-                    noWorldIframe:!document.querySelector('iframe')
+                    numberOfCashActions:document.querySelectorAll('#cash-actions button').length
                   };
                 });
-                console.log(name,state,errors);
-                await page.screenshot({path:'review/1age-cash-3d-'+name+'.png',timeout:15000});
-                if(!state.canvas||!state.gl||state.sharedJoysticks!==2||
-                   state.accountLabel!=='—'||!state.connection.includes('not connected')||
-                   !state.noWorldIframe||errors.length)failed=true;
+                console.log(name,{...state,frameCanvas,engineStatus},errors);
+                await page.screenshot({path:'review/cash-real-world-'+name+'.png',timeout:30000});
+                if(!frameCanvas||!state.world||!state.worldVisible||state.syntheticCashCanvas||
+                   state.balance!=='—'||!state.connection?.includes('not connected')||
+                   state.numberOfCashActions!==4||errors.length)failed=true;
                 await page.locator('[data-action=add]').click();
                 const panel=page.locator('#cash-panel');
                 const buttons=await panel.locator('button.panel-action').evaluateAll(nodes=>nodes.map(n=>n.disabled));
                 const details=await panel.locator('.pending-state').textContent();
                 if(buttons.length!==3||!buttons.every(Boolean)||!details.includes('not enabled'))failed=true;
-                await page.screenshot({path:'review/1age-cash-add-'+name+'.png',timeout:15000});
+                await page.screenshot({path:'review/cash-real-world-add-'+name+'.png',timeout:30000});
               }catch(error){failed=true;console.error(name,error);}
               await context.close();
             }
@@ -101,7 +119,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: cash-3d-sandbox-review
+          name: cash-real-world-review
           path: review/
           if-no-files-found: warn
           retention-days: 14
