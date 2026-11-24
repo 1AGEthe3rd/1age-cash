@@ -6,6 +6,10 @@
 ## Source changes
 The root homepage previously embedded 1AGE World. The new Cash-native account interface now **retains the exact approved deployed 1AGE World Godot runtime** (https://1age.world/?platform=cash) as its real rotating Earth / orbital / cosmic environment, with Cash-specific holographic Balance, Add Cash, Activity and Use Cash actions on top. The earlier synthetic Three.js vault, random stars, substitute celestial bodies, fake platform and duplicate control renderer have been removed. The old /application.html local-test client remains. The original World gamepad belongs to the iframe; it is not copied into Cash. The World repo itself was not altered.
 
+The approved 1AGE logo **no longer appears in Cash's fixed top header**. Its menu is a floating perspective holographic-style monogram at scene level. Universal Store and Blog links appear inside it, with settings and home as separate utilities. Its interaction design favors original playful, tactile, cinematic selection feedback (rather than copying any Nintendo or Wii assets).
+
+The compiled original World still contains its own top-left menu logo; changing that requires the exact editable approved Godot scene, currently unavailable in inspected GitHub sources. Do not mask or forge changes to it. The embedded World iframe intentionally **does not receive fullscreen permission**, since the Godot game automatically enters iframe fullscreen and hides Cash's foreground controls; visitors who want the unmodified fullscreen World can use the direct original World link. This is an interim bridge, not a native Godot menu.
+
 The new user interface intentionally displays **no fictitious account balance, test money posed as real, or completed real purchases**. Account state is read from a server only after a verified 1AGE identity SDK is connected.
 
 ## Server reference implementation
