@@ -21,14 +21,21 @@
       <a class="world-direct" href="https://1age.world/?platform=cash" target="_blank" rel="noopener noreferrer"
         aria-label="Open the original 1AGE World in a new tab">Open World <span aria-hidden="true">↗</span></a>
     </div>
-    <header class="cash-header">
-      <a href="https://1age.com/" class="brand" aria-label="Return to 1AGE.com">
-        <img src="./assets/1age-logo.svg" alt="" width="44" height="44">
-        <span><b>1AGE</b><small>CASH</small></span>
-      </a>
+    <header class="cash-header" aria-label="Cash account status">
       <span id="cash-connection" class="connection" role="status">Secure account not connected</span>
-      <button id="cash-info" class="round-button" aria-label="About 1AGE Cash" title="About Cash">?</button>
     </header>
+    <!-- Official monogram as an interactive spatial hologram, not a fixed header icon.
+         The real Godot 1AGE World remains the ONLY cosmic environment. -->
+    <button id="oneage-hologram-menu" class="hologram-menu" type="button"
+      aria-label="Open 1AGE hologram menu" aria-haspopup="dialog" aria-controls="cash-panel"
+      aria-expanded="false" title="1AGE menu">
+      <span class="holo-column" aria-hidden="true"></span>
+      <span class="holo-orbit" aria-hidden="true"></span>
+      <span class="holo-face" aria-hidden="true">
+        <img src="./assets/1age-logo.svg" alt="">
+      </span>
+      <span class="holo-shadow" aria-hidden="true"></span>
+    </button>
     <section id="cash-core-label" class="core-label" aria-live="polite">
       <span class="eyebrow">YOUR CASH</span>
       <strong id="cash-balance">—</strong>
