@@ -14,6 +14,8 @@ import {
   TEST_MAX_OUTSTANDING_MINOR, availableMinor,
   validateTopupAmount, validateRequestKey, refundDifference, isSafeOwner
 } from './policy.mjs';
+import { parseCatalog } from './catalog.mjs';
+import { redeemCash, RedemptionError } from './redemption.mjs';
 
 const required = ['DATABASE_URL', 'AUTH_ISSUER', 'AUTH_AUDIENCE', 'AUTH_JWKS_URL'];
 for (const key of required) if (!process.env[key]) throw Error('Missing required environment configuration: ' + key);
@@ -21,6 +23,8 @@ if (!process.env.AUTH_ISSUER.startsWith('https://') ||
     !process.env.AUTH_JWKS_URL.startsWith('https://')) throw Error('Identity issuer and JWKS must use HTTPS.');
 
 const checkoutEnabled = process.env.CASH_ENABLE_TEST_CHECKOUT === 'true';
+const redemptionEnabled = process.env.CASH_ENABLE_REDEMPTION === 'true';
+const redemptionCatalog = parseCatalog(process.env.CASH_CATALOG_JSON || '[]');
 const key = process.env.STRIPE_SECRET_KEY;
 if (key && !key.startsWith('sk_test_')) throw Error('Refusing to use a non-test Stripe secret key.');
 if (checkoutEnabled && (!key || !process.env.STRIPE_WEBHOOK_SECRET ||
@@ -86,6 +90,7 @@ app.get('/api/cash/me', identity, async (req, res) => {
       suspended: current.frozen || Number(current.balance_minor) < 0,
       debt_minor: Math.max(0, -Number(current.balance_minor)),
       checkout_test_enabled: checkoutEnabled,
+      redemption_enabled: redemptionEnabled && redemptionCatalog.length > 0,
       transactions: history.rows.map(row => ({
         delta_minor: Number(row.delta_minor), kind: row.kind,
         reason: row.description, created_at: row.created_at
@@ -94,6 +99,46 @@ app.get('/api/cash/me', identity, async (req, res) => {
   } catch (error) {
     console.error('cash account fetch error', error.message);
     errorResponse(res, 503, 'Cash account is temporarily unavailable.');
+  }
+});
+
+// This list is server-owned. Products are not redeemable until an approved
+// first-party catalog has been configured on the deployed API.
+app.get('/api/cash/catalog', (req, res) => {
+  res.json({ items: redemptionEnabled ? redemptionCatalog : [], redemption_enabled: redemptionEnabled && redemptionCatalog.length > 0 });
+});
+
+// Return evidence of existing internal entitlements only; no external game
+// claims or purchase fulfilment should rely on client-visible flags alone.
+app.get('/api/cash/entitlements', identity, async (req, res) => {
+  try {
+    const rows = await pool.query(
+      'SELECT sku,app,granted_at FROM cash_entitlements WHERE owner_id=$1 ORDER BY granted_at DESC LIMIT 100',
+      [req.ownerId]
+    );
+    res.json({ items: rows.rows });
+  } catch (error) {
+    console.error('Cash entitlement query failed', error.message);
+    errorResponse(res, 503, 'Entitlements temporarily unavailable.');
+  }
+});
+
+app.post('/api/cash/redeem', json, identity, async (req, res) => {
+  if (!redemptionEnabled || !redemptionCatalog.length) {
+    return errorResponse(res, 503, 'Cash redemptions are not enabled.');
+  }
+  try {
+    const item = await redeemCash(pool, {
+      ownerId: req.ownerId,
+      sku: req.body?.sku,
+      requestKey: req.body?.request_key,
+      catalog: redemptionCatalog
+    });
+    return res.status(item.replayed ? 200 : 201).json(item);
+  } catch (error) {
+    if (error instanceof RedemptionError) return errorResponse(res, error.status, error.message);
+    console.error('Cash redemption failed', error.message);
+    return errorResponse(res, 503, 'Unable to complete Cash redemption.');
   }
 });
 
