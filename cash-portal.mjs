@@ -16,7 +16,7 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const tabs = ['balance', 'add', 'activity', 'use'];
 const hologramMenu = document.querySelector('#oneage-hologram-menu');
 let panelTrigger = null;
-const state = { account: null, connected: false, checkoutEnabled: false, busy: false, selected: 'balance' };
+const state = { account: null, connected: false, checkoutEnabled: false, redemptionEnabled: false, busy: false, selected: 'balance' };
 const amount = n => (n / 100).toFixed(2);
 const textNode = (tag, value, className = '') => {
   const node = document.createElement(tag);
@@ -61,10 +61,12 @@ async function loadAccount() {
     label.textContent = amount(Math.max(0, info.balance_minor));
     caption.textContent = '1AGE Cash credits';
     state.checkoutEnabled = info.checkout_test_enabled === true;
+    state.redemptionEnabled = info.redemption_enabled === true;
   } catch {
     state.connected = false;
     state.account = null;
     state.checkoutEnabled = false;
+    state.redemptionEnabled = false;
     status.classList.remove('connected');
     status.textContent = 'Secure account not connected';
     label.textContent = '—';
@@ -149,18 +151,71 @@ function renderPanel(name) {
       content.append(list);
     }
   } else if (name === 'use') {
-    content.append(paragraph('1AGE Cash will support eligible purchases and experiences in connected first-party applications.'));
-    const list = textNode('ul', undefined, 'panel-list');
-    for (const [name, href] of [['World', 'https://1age.world/'],['Games', 'https://1age.games/'],['Quest', 'https://1age.quest/'],['Store', 'https://1age.store/']]) {
-      const li = textNode('li');
-      const anchor = textNode('a', 'Explore ' + name);
-      anchor.href = href; anchor.rel = 'noopener noreferrer';
-      li.append(anchor); list.append(li);
+    content.append(paragraph('Redeem Cash for eligible first-party items. Prices and available items are controlled by the secure 1AGE Cash service, never by this page.'));
+    const items = textNode('section', undefined, 'cash-redemption-list');
+    items.setAttribute('aria-live', 'polite');
+    content.append(items);
+    if (!state.connected) {
+      items.append(note('A secure 1AGE account is required. The Cash backend and Page sign-in are not connected to this site yet.'));
+    } else if (!state.redemptionEnabled) {
+      items.append(note('Cash purchases are not enabled. There are no live items available to redeem.'));
+    } else {
+      items.append(paragraph('Loading approved items…'));
+      // Only the authenticated server can issue a Cash entitlement. This never
+      // changes the displayed balance optimistically or fabricates delivery.
+      loadRedeemableItems(items);
     }
-    content.append(list);
-    content.append(note('These links do not indicate that Cash spending is enabled in each app. Verified spending endpoints and eligibility rules are a separate integration milestone.'));
   }
   if (!dialog.open) dialog.showModal();
+}
+
+async function loadRedeemableItems(region) {
+  try {
+    const response = await api('catalog');
+    if (!region.isConnected || state.selected !== 'use' || !dialog.open) return;
+    region.replaceChildren();
+    if (!response.redemption_enabled || !Array.isArray(response.items) || !response.items.length) {
+      region.append(note('No approved Cash items are currently available.'));
+      return;
+    }
+    for (const item of response.items) {
+      if (!item || typeof item.sku !== 'string' || typeof item.name !== 'string' ||
+          !Number.isSafeInteger(item.price_minor) || item.price_minor <= 0) continue;
+      const row = textNode('div', undefined, 'cash-redemption-item');
+      row.append(textNode('strong', item.name));
+      row.append(paragraph(item.app + ' · ' + amount(item.price_minor) + ' Cash · One per account'));
+      const button = textNode('button', 'Review redemption', 'panel-action');
+      button.type = 'button';
+      button.disabled = !!state.account?.suspended;
+      let confirmed = false;
+      button.addEventListener('click', async () => {
+        if (state.busy || !state.connected || !!state.account?.suspended) return;
+        if (!confirmed) {
+          confirmed = true;
+          button.textContent = 'Confirm: spend ' + amount(item.price_minor) + ' Cash';
+          return;
+        }
+        state.busy = true;
+        button.disabled = true;
+        try {
+          const result = await api('redeem', {sku:item.sku,request_key:crypto.randomUUID()});
+          await loadAccount();
+          row.replaceChildren(note(result.replayed
+            ? 'This Cash purchase was already recorded.'
+            : 'Cash debited and entitlement recorded. Its availability inside the app must be verified separately.'));
+        } catch (error) {
+          row.prepend(note(error.message));
+          confirmed = false;
+          button.textContent = 'Review redemption';
+          button.disabled = false;
+        } finally { state.busy = false; }
+      });
+      row.append(button);
+      region.append(row);
+    }
+  } catch {
+    if (region.isConnected) region.replaceChildren(note('The approved Cash catalog is not available from the secure server.'));
+  }
 }
 
 hologramMenu?.addEventListener('click', () => renderPanel('menu'));
