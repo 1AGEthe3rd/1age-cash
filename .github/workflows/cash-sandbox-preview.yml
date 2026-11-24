@@ -42,6 +42,10 @@ jobs:
           TEST_DATABASE_URL: postgres://cash_test:cash_test@127.0.0.1:5432/cash_test
         run: |
           npm install --prefix server --no-package-lock
+          node --check server/identity.mjs
+          npm --prefix server run build:identity
+          node --check cash-identity.mjs
+          node --test server/tests/identity.test.mjs server/tests/browser-identity.test.mjs
           node --test server/tests/integration.test.mjs
           node --test server/tests/redemption.test.mjs
       - name: Install isolated browser test runner

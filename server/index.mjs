@@ -8,11 +8,11 @@
 import express from 'express';
 import pg from 'pg';
 import Stripe from 'stripe';
-import { createRemoteJWKSet, jwtVerify } from 'jose';
+import { identityConfig, createIdentityVerifier } from './identity.mjs';
 import { randomUUID } from 'node:crypto';
 import {
   TEST_MAX_OUTSTANDING_MINOR, availableMinor,
-  validateTopupAmount, validateRequestKey, refundDifference, isSafeOwner
+  validateTopupAmount, validateRequestKey, refundDifference
 } from './policy.mjs';
 import { parseCatalog } from './catalog.mjs';
 import { redeemCash, RedemptionError } from './redemption.mjs';
@@ -20,8 +20,9 @@ import { attachCashSite } from './static-site.mjs';
 
 const required = ['DATABASE_URL', 'AUTH_ISSUER', 'AUTH_AUDIENCE', 'AUTH_JWKS_URL'];
 for (const key of required) if (!process.env[key]) throw Error('Missing required environment configuration: ' + key);
-if (!process.env.AUTH_ISSUER.startsWith('https://') ||
-    !process.env.AUTH_JWKS_URL.startsWith('https://')) throw Error('Identity issuer and JWKS must use HTTPS.');
+const authConfig = identityConfig(process.env);
+const browserClient = process.env.AUTH_BROWSER_CLIENT_ID || '';
+if (browserClient && browserClient !== '1age-cash') throw Error('Unexpected Cash browser client');
 
 const checkoutEnabled = process.env.CASH_ENABLE_TEST_CHECKOUT === 'true';
 const redemptionEnabled = process.env.CASH_ENABLE_REDEMPTION === 'true';
@@ -38,12 +39,13 @@ const pool = new pg.Pool({
   max: 8,
   ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: true } : undefined
 });
-const jwks = createRemoteJWKSet(new URL(process.env.AUTH_JWKS_URL));
+const verifyIdentity = createIdentityVerifier(authConfig);
 const app = express();
 app.disable('x-powered-by');
 app.use((req, res, next) => {
   res.set('Cache-Control', 'no-store');
   res.set('X-Content-Type-Options', 'nosniff');
+  res.set('Referrer-Policy', 'no-referrer');
   next();
 });
 const json = express.json({ limit: '16kb' });
@@ -54,14 +56,7 @@ async function identity(req, res, next) {
   const token = authorization.startsWith('Bearer ') ? authorization.slice(7) : null;
   if (!token) return errorResponse(res, 401, 'Secure 1AGE sign-in required.');
   try {
-    const { payload } = await jwtVerify(token, jwks, {
-      issuer: process.env.AUTH_ISSUER,
-      audience: process.env.AUTH_AUDIENCE,
-      algorithms: ['RS256', 'ES256'],
-      clockTolerance: 5
-    });
-    if (!isSafeOwner(payload.sub)) throw Error('Invalid token subject');
-    req.ownerId = process.env.AUTH_ISSUER + '#' + payload.sub;
+    req.ownerId = await verifyIdentity(token);
     next();
   } catch {
     errorResponse(res, 401, 'Invalid or expired secure identity.');
@@ -78,6 +73,10 @@ async function account(ownerId, client = pool) {
 }
 
 app.get('/healthz', (req, res) => res.json({ status: 'sandbox', accepts_live_payments: false }));
+app.get('/api/cash/identity-config', (req, res) => {
+  if (!browserClient) return res.json({enabled:false});
+  res.json({enabled:true, issuer:authConfig.issuer, clientId:browserClient});
+});
 
 app.get('/api/cash/me', identity, async (req, res) => {
   try {

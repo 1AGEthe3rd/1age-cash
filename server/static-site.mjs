@@ -13,7 +13,7 @@ import { join } from 'node:path';
 const siteRoot = fileURLToPath(new URL('../', import.meta.url));
 const routes = new Set([
   '/index.html', '/application.html',
-  '/cash-portal.css', '/cash-portal.mjs',
+  '/cash-portal.css', '/cash-portal.mjs', '/cash-identity.mjs',
   '/cash.js', '/app-home.js',
   '/virtual-entry.css', '/virtual-entry.mjs',
   '/interface-motion.css', '/search-toggle.js',
@@ -23,6 +23,7 @@ const directories = ['assets', 'apps', 'experiences/shared'];
 
 export function attachCashSite(app) {
   app.get('/', (req, res) => res.sendFile(join(siteRoot, 'index.html')));
+  app.get('/identity-sdk.mjs', (req, res) => res.sendFile(join(siteRoot, 'server/generated/keycloak.mjs')));
   for (const route of routes) {
     app.get(route, (req, res) => res.sendFile(join(siteRoot, route.slice(1))));
   }
