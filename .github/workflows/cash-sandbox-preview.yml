@@ -97,19 +97,19 @@ jobs:
                     numberOfCashActions:document.querySelectorAll('#cash-actions button').length,
                     hologramMenu:!!document.querySelector('#oneage-hologram-menu .holo-face img'),
                     fixedTopLogo:!!document.querySelector('.cash-header img'),
-                    navAboveWorld:(()=>{
-                      const b=document.querySelector('[data-action=add]');
+                    walletHologramAboveWorld:(()=>{
+                      const b=document.querySelector('#cash-core-label');
                       if(!b)return false;
                       const r=b.getBoundingClientRect();
                       const top=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
                       return top===b||b.contains(top);
                     })(),
+                    stationsInitiallyClosed:!document.querySelector('#cash-stations').open,
                     diagnostic:(()=>{
-                      const nav=document.querySelector('#cash-actions'),
+                      const nav=document.querySelector('#cash-core-label'),
                         frame=document.querySelector('#oneage-world'),
                         app=document.querySelector('#cash-app');
-                      const b=nav.querySelector('[data-action=add]');
-                      const rect=b.getBoundingClientRect();
+                      const rect=nav.getBoundingClientRect();
                       const top=document.elementFromPoint(rect.x+rect.width/2,rect.y+rect.height/2);
                       return {
                         pageUrl:location.href,
@@ -131,7 +131,8 @@ jobs:
                 if(!frameCanvas||!state.world||!state.worldVisible||state.syntheticCashCanvas||
                    state.balance!=='—'||!state.connection?.includes('not connected')||
                    state.numberOfCashActions!==4||!state.hologramMenu||state.fixedTopLogo||
-                   !state.navAboveWorld||state.diagnostic.fullscreen||errors.length)failed=true;
+                   !state.walletHologramAboveWorld||!state.stationsInitiallyClosed||
+                   state.diagnostic.fullscreen||errors.length)failed=true;
                 await page.locator('#oneage-hologram-menu').click({timeout:7000});
                 const menu=page.locator('#cash-panel');
                 const store=menu.locator('a.holo-menu-link[href="https://1age.store/"]');
@@ -141,6 +142,10 @@ jobs:
                 if(!(await store.isVisible())||!(await blog.isVisible())||expanded!=='true'||headerLogo)failed=true;
                 await page.screenshot({path:'review/cash-holographic-menu-'+name+'.png',timeout:30000});
                 await page.locator('#close-panel').click({timeout:7000});
+                await page.locator('#cash-core-label').click({timeout:7000});
+                const stations=page.locator('#cash-stations');
+                if(!(await stations.isVisible()))failed=true;
+                await page.screenshot({path:'review/cash-station-chooser-'+name+'.png',timeout:30000});
                 await page.locator('[data-action=add]').click({timeout:7000});
                 const panel=page.locator('#cash-panel');
                 const buttons=await panel.locator('button.panel-action').evaluateAll(nodes=>nodes.map(n=>n.disabled));
