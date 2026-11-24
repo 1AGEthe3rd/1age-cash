@@ -8,6 +8,20 @@ jobs:
   checks-and-render:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: cash_test
+          POSTGRES_PASSWORD: cash_test
+          POSTGRES_DB: cash_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cash_test -d cash_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 8
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -20,6 +34,12 @@ jobs:
           node --check server/policy.mjs
           node --check cash-portal.mjs
           node --check cash.js
+      - name: Verify sandbox webhook-ledger integration against ephemeral PostgreSQL
+        env:
+          TEST_DATABASE_URL: postgres://cash_test:cash_test@127.0.0.1:5432/cash_test
+        run: |
+          npm install --prefix server --no-package-lock
+          node --test server/tests/integration.test.mjs
       - name: Install isolated browser test runner
         run: npm install --no-save --no-package-lock playwright@1.56.1
       - name: Serve draft static files locally
