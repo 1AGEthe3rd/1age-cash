@@ -21,3 +21,8 @@ button{cursor:pointer;font:inherit;color:inherit}button:focus-visible,a:focus-vi
 @media(max-width:620px){.cash-header{gap:5px}.brand{gap:6px}.brand img{width:39px;height:39px}.connection{font-size:9px;padding:8px;max-width:140px}.cash-header .round-button{width:36px;height:36px}.core-label{top:39%}#cash-actions{bottom:calc(env(safe-area-inset-bottom) + 17px);gap:2px;padding:5px}#cash-actions button{font-size:11px;padding:9px 10px;min-height:44px}.hint{bottom:calc(env(safe-area-inset-bottom) + 86px)}#cash-panel{bottom:calc(env(safe-area-inset-bottom) + 84px)}}
 @media(max-height:480px){.core-label{top:38%}.hint{display:none}#cash-actions{bottom:calc(env(safe-area-inset-bottom) + 6px)}#cash-panel{inset:calc(env(safe-area-inset-top) + 6px) 12px auto;max-height:calc(100dvh - 82px)}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* Keep original paired 1AGE joysticks visible without covering Cash actions. */
+body #oneage-controller .oneage-stick{bottom:calc(env(safe-area-inset-bottom) + 103px);opacity:.82;transform:scale(.85);transform-origin:bottom center}
+@media(max-width:620px){body #oneage-controller .oneage-stick{bottom:calc(env(safe-area-inset-bottom) + 93px);transform:scale(.78)}}
+@media(max-height:480px){body #oneage-controller .oneage-stick{bottom:calc(env(safe-area-inset-bottom) + 68px);transform:scale(.65)}}
