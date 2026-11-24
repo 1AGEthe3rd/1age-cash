@@ -32,6 +32,9 @@ jobs:
           node --test server/tests/policy.test.mjs
           node --check server/index.mjs
           node --check server/policy.mjs
+          node --check server/catalog.mjs
+          node --check server/redemption.mjs
+          node --test server/tests/redemption.test.mjs
           node --check cash-portal.mjs
           node --check cash.js
       - name: Verify sandbox webhook-ledger integration against ephemeral PostgreSQL
@@ -40,6 +43,7 @@ jobs:
         run: |
           npm install --prefix server --no-package-lock
           node --test server/tests/integration.test.mjs
+          node --test server/tests/redemption.test.mjs
       - name: Install isolated browser test runner
         run: npm install --no-save --no-package-lock playwright@1.56.1
       - name: Serve draft static files locally
