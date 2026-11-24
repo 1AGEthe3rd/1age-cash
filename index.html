@@ -11,11 +11,14 @@
 </head>
 <body>
   <main id="cash-app">
-    <!-- Real production Godot World. Do not replace with a fabricated globe, starfield or placeholder scene. -->
+    <!-- Real production Godot World. Do not replace with a fabricated globe, starfield or placeholder scene.
+         Do not grant fullscreen to the nested engine: it can enter browser top-layer fullscreen
+         automatically and make Cash holographic controls untouchable. The standalone World
+         link below retains the original direct-run fullscreen experience. -->
     <div id="cash-scene" class="world-host" aria-label="Original 1AGE World cosmic environment">
       <iframe id="oneage-world" title="Original 1AGE World · Cash destination"
         src="https://1age.world/?platform=cash"
-        allow="autoplay; fullscreen; gamepad" allowfullscreen loading="eager"
+        allow="autoplay; gamepad" loading="eager"
         referrerpolicy="strict-origin-when-cross-origin"></iframe>
       <p id="world-status" class="world-status" role="status">Entering the original 1AGE World…</p>
       <a class="world-direct" href="https://1age.world/?platform=cash" target="_blank" rel="noopener noreferrer"
