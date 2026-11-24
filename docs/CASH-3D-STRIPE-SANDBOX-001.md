@@ -1,10 +1,10 @@
-# 1AGE Cash — Build 001: Cash-native 3D + Stripe sandbox
+# 1AGE Cash — Build 001: Genuine 1AGE World + native Cash/Stripe sandbox
 
 ## Role and constraints
 1AGE Cash is an **off-chain, wallet-free internal credit balance**, distinct from the $1AGE cryptocurrency and from the 1AGE Exchange virtual financial platform. It is not a bank, P2P money transfer, redeemable token or investment. Its use is limited to approved first-party 1AGE goods and experiences.
 
 ## Source changes
-The root homepage previously embedded a 1AGE World iframe. This branch builds a native, original Three.js 3D Cash center with a rotating vault and selectable Balance, Add Cash, Activity and Use Cash stations. It preserves the older local test application at /application.html and reuses vendored Three.js plus the original shared L/R gamepad module.
+The root homepage previously embedded 1AGE World. The new Cash-native account interface now **retains the exact approved deployed 1AGE World Godot runtime** (https://1age.world/?platform=cash) as its real rotating Earth / orbital / cosmic environment, with Cash-specific holographic Balance, Add Cash, Activity and Use Cash actions on top. The earlier synthetic Three.js vault, random stars, substitute celestial bodies, fake platform and duplicate control renderer have been removed. The old /application.html local-test client remains. The original World gamepad belongs to the iframe; it is not copied into Cash. The World repo itself was not altered.
 
 The new user interface intentionally displays **no fictitious account balance, test money posed as real, or completed real purchases**. Account state is read from a server only after a verified 1AGE identity SDK is connected.
 
@@ -51,8 +51,8 @@ Apply server/schema.sql first. The backend must be reverse-proxied with TLS and 
 - GET /healthz: always reports sandbox status
 
 ## Approval gates
-- Browser-render the real Cash WebGL scene on desktop and iPhone-size portrait/landscape viewports.
-- Verify actual touch/gamepad controls, navigation, and WebGL failure fallback.
+- Browser-render the original 1AGE World Godot runtime embedded in Cash, including Cash account controls, on desktop and phone-size portrait/landscape viewports. Distinguish loaded HTML from a fully rendered Godot scene.
+- Verify World controls/gamepad remain intact, Cash controls accessible and cross-origin iframe failures use a **direct World link** rather than substitute generic 3D geometry. Physical iPhone/F310 testing is still required.
 - Verify no public fake balances or payments and no real checkout enabled.
 - Test identity JWT failures, safe concurrent ledger writes, partial refunds, duplicate/out-of-order webhooks, disputes and spending integration after relevant hosting is connected.
 - Conduct secure payment and legal review; ask Stripe about this exact product.
