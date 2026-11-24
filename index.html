@@ -1,1 +1,67 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#000000"><title>1AGE Cash · World Platform</title><style>html,body{height:100%;width:100%;margin:0;overflow:hidden;background:#000;color:#e2ffdc}body{overscroll-behavior:none;touch-action:none}main{position:fixed;inset:0}iframe{display:block;width:100%;height:100%;border:0;background:#000}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}</style></head><body><main aria-label="1AGE Cash 3D platform"><iframe title="1AGE Cash in 1AGE World" src="https://1age.world/?platform=cash" allow="autoplay; fullscreen; gamepad" allowfullscreen loading="eager"></iframe><p class="sr-only">Shared 1AGE World environment. Touch the gamepad or use a controller to explore.</p></main><noscript><a href="https://1age.world/?platform=cash">Open 1AGE Cash</a></noscript></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <meta name="description" content="1AGE Cash — your wallet-free internal credits inside the 1AGE ecosystem.">
+  <title>1AGE Cash — World-connected Credit Center</title>
+  <link rel="icon" type="image/svg+xml" href="./assets/app-icons/cash.svg">
+  <link rel="stylesheet" href="./cash-portal.css">
+</head>
+<body>
+  <main id="cash-app">
+    <!-- Real production Godot World. Do not replace with a fabricated globe, starfield or placeholder scene.
+         Do not grant fullscreen to the nested engine: it can enter browser top-layer fullscreen
+         automatically and make Cash holographic controls untouchable. The standalone World
+         link below retains the original direct-run fullscreen experience. -->
+    <div id="cash-scene" class="world-host" aria-label="Original 1AGE World cosmic environment">
+      <iframe id="oneage-world" title="Original 1AGE World · Cash destination"
+        src="https://1age.world/?platform=cash"
+        allow="autoplay; gamepad" loading="eager"
+        referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      <p id="world-status" class="world-status" role="status">Entering the original 1AGE World…</p>
+      <a class="world-direct" href="https://1age.world/?platform=cash" target="_blank" rel="noopener noreferrer"
+        aria-label="Open the original 1AGE World in a new tab">Open World <span aria-hidden="true">↗</span></a>
+    </div>
+    <header class="cash-header" aria-label="Cash account status">
+      <span id="cash-connection" class="connection" role="status">Secure account not connected</span>
+    </header>
+    <!-- Official monogram as an interactive spatial hologram, not a fixed header icon.
+         The real Godot 1AGE World remains the ONLY cosmic environment. -->
+    <button id="oneage-hologram-menu" class="hologram-menu" type="button"
+      aria-label="Open 1AGE hologram menu" aria-haspopup="dialog" aria-controls="cash-panel"
+      aria-expanded="false" title="1AGE menu">
+      <span class="holo-column" aria-hidden="true"></span>
+      <span class="holo-orbit" aria-hidden="true"></span>
+      <span class="holo-face" aria-hidden="true">
+        <img src="./assets/1age-logo.svg" alt="">
+      </span>
+      <span class="holo-shadow" aria-hidden="true"></span>
+    </button>
+    <section id="cash-core-label" class="core-label" aria-live="polite">
+      <span class="eyebrow">YOUR CASH</span>
+      <strong id="cash-balance">—</strong>
+      <span id="cash-balance-caption">Sign in required for your balance</span>
+    </section>
+    <nav id="cash-actions" aria-label="Cash destinations">
+      <button type="button" data-action="balance" aria-current="true">Balance</button>
+      <button type="button" data-action="add">Add Cash</button>
+      <button type="button" data-action="activity">Activity</button>
+      <button type="button" data-action="use">Use Cash</button>
+    </nav>
+    <p class="hint" id="cash-hint">Explore the real 1AGE World. Open a Cash station to manage credits.</p>
+    <dialog id="cash-panel" aria-labelledby="cash-panel-title">
+      <div class="panel-heading">
+        <span class="eyebrow">1AGE CASH</span>
+        <button id="close-panel" type="button" class="round-button" aria-label="Close panel">×</button>
+      </div>
+      <h1 id="cash-panel-title">Your Cash</h1>
+      <div id="cash-panel-content"></div>
+      <p class="disclosure">Internal credits only · Not a bank account, cryptocurrency, or withdrawable cash.</p>
+    </dialog>
+    <noscript><p class="noscript-note">JavaScript is needed for the 3D Cash environment. 1AGE Cash does not accept payments on this page without a secure backend.</p></noscript>
+  </main>
+  <script type="module" src="./cash-portal.mjs"></script>
+</body>
+</html>

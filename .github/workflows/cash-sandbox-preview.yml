@@ -1,0 +1,164 @@
+name: Validate Cash sandbox in real 1AGE World
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  checks-and-render:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 19
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: cash_test
+          POSTGRES_PASSWORD: cash_test
+          POSTGRES_DB: cash_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cash_test -d cash_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate sandbox policy and source syntax
+        run: |
+          node --test server/tests/policy.test.mjs
+          node --check server/index.mjs
+          node --check server/policy.mjs
+          node --check cash-portal.mjs
+          node --check cash.js
+      - name: Verify sandbox webhook-ledger integration against ephemeral PostgreSQL
+        env:
+          TEST_DATABASE_URL: postgres://cash_test:cash_test@127.0.0.1:5432/cash_test
+        run: |
+          npm install --prefix server --no-package-lock
+          node --test server/tests/integration.test.mjs
+      - name: Install isolated browser test runner
+        run: npm install --no-save --no-package-lock playwright@1.56.1
+      - name: Serve draft static files locally
+        run: |
+          nohup python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/cash-portal-server.log 2>&1 &
+          sleep 2
+      - name: Verify actual 1AGE World embed, Cash terminals and no fabricated stars
+        run: |
+          mkdir -p review
+          node <<'NODE'
+          const {chromium} = require('playwright');
+          (async()=>{
+            const browser=await chromium.launch({
+              executablePath:'/usr/bin/google-chrome',headless:true,
+              args:['--no-sandbox','--enable-webgl','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']
+            });
+            let failed=false;
+            for (const [name,width,height,mobile] of [
+              ['desktop',1366,768,false],
+              ['iphone-portrait',390,844,true],
+              ['iphone-landscape',844,390,true]
+            ]) {
+              const context=await browser.newContext({viewport:{width,height},isMobile:mobile,hasTouch:mobile,deviceScaleFactor:1});
+              const page=await context.newPage();
+              const errors=[];page.on('pageerror',e=>errors.push(e.message));
+              try {
+                await page.goto('http://127.0.0.1:4173/',{waitUntil:'domcontentloaded',timeout:30000});
+                const src=await page.locator('#oneage-world').getAttribute('src');
+                if(src!=='https://1age.world/?platform=cash')failed=true;
+                // The authentic World engine, celestial backdrop and gamepad
+                // remain in the original cross-origin Godot frame.
+                let frameCanvas=false,engineStatus='unknown';
+                try {
+                  await page.frameLocator('#oneage-world').locator('#canvas').waitFor({timeout:30000,state:'attached'});
+                  frameCanvas=true;
+                  await page.waitForTimeout(13000);
+                  engineStatus=await page.frameLocator('#oneage-world').locator('body').evaluate(body=>{
+                    const notice=body.querySelector('#status-notice')?.textContent||'';
+                    return {
+                      canvas:!!body.querySelector('#canvas'),
+                      statusOverlay:!!body.querySelector('#status'),
+                      error:notice.trim().slice(0,240)
+                    };
+                  });
+                }catch(error){console.error('World iframe load',name,String(error));failed=true;}
+                const state=await page.evaluate(()=>{
+                  const frame=document.querySelector('#oneage-world');
+                  return {
+                    world:!!frame,
+                    worldSrc:frame?.getAttribute('src'),
+                    worldVisible:!!frame&&getComputedStyle(frame).display!=='none',
+                    syntheticCashCanvas:!!document.querySelector('#cash-scene canvas'),
+                    balance:document.querySelector('#cash-balance')?.textContent,
+                    connection:document.querySelector('#cash-connection')?.textContent,
+                    numberOfCashActions:document.querySelectorAll('#cash-actions button').length,
+                    hologramMenu:!!document.querySelector('#oneage-hologram-menu .holo-face img'),
+                    fixedTopLogo:!!document.querySelector('.cash-header img'),
+                    navAboveWorld:(()=>{
+                      const b=document.querySelector('[data-action=add]');
+                      if(!b)return false;
+                      const r=b.getBoundingClientRect();
+                      const top=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+                      return top===b||b.contains(top);
+                    })(),
+                    diagnostic:(()=>{
+                      const nav=document.querySelector('#cash-actions'),
+                        frame=document.querySelector('#oneage-world'),
+                        app=document.querySelector('#cash-app');
+                      const b=nav.querySelector('[data-action=add]');
+                      const rect=b.getBoundingClientRect();
+                      const top=document.elementFromPoint(rect.x+rect.width/2,rect.y+rect.height/2);
+                      return {
+                        pageUrl:location.href,
+                        fullscreen:document.fullscreenElement?.outerHTML?.slice(0,200)||null,
+                        navZ:getComputedStyle(nav).zIndex,
+                        navPosition:getComputedStyle(nav).position,
+                        appPosition:getComputedStyle(app).position,
+                        frameZ:getComputedStyle(frame).zIndex,
+                        framePosition:getComputedStyle(frame).position,
+                        hostZ:getComputedStyle(frame.parentElement).zIndex,
+                        atCashButton:top?.outerHTML?.slice(0,230),
+                        navRectangle:{x:rect.x,y:rect.y,width:rect.width,height:rect.height}
+                      };
+                    })()
+                  };
+                });
+                console.log(name,{...state,frameCanvas,engineStatus},errors);
+                await page.screenshot({path:'review/cash-real-world-'+name+'.png',timeout:30000});
+                if(!frameCanvas||!state.world||!state.worldVisible||state.syntheticCashCanvas||
+                   state.balance!=='—'||!state.connection?.includes('not connected')||
+                   state.numberOfCashActions!==4||!state.hologramMenu||state.fixedTopLogo||
+                   !state.navAboveWorld||state.diagnostic.fullscreen||errors.length)failed=true;
+                await page.locator('#oneage-hologram-menu').click({timeout:7000});
+                const menu=page.locator('#cash-panel');
+                const store=menu.locator('a.holo-menu-link[href="https://1age.store/"]');
+                const blog=menu.locator('a.holo-menu-link[href="https://1age.blog/"]');
+                const expanded=await page.locator('#oneage-hologram-menu').getAttribute('aria-expanded');
+                const headerLogo=await page.locator('header.cash-header img').count();
+                if(!(await store.isVisible())||!(await blog.isVisible())||expanded!=='true'||headerLogo)failed=true;
+                await page.screenshot({path:'review/cash-holographic-menu-'+name+'.png',timeout:30000});
+                await page.locator('#close-panel').click({timeout:7000});
+                await page.locator('[data-action=add]').click({timeout:7000});
+                const panel=page.locator('#cash-panel');
+                const buttons=await panel.locator('button.panel-action').evaluateAll(nodes=>nodes.map(n=>n.disabled));
+                const details=await panel.locator('.pending-state').textContent();
+                if(buttons.length!==3||!buttons.every(Boolean)||!details.includes('not enabled'))failed=true;
+                await page.screenshot({path:'review/cash-real-world-add-'+name+'.png',timeout:30000});
+              }catch(error){failed=true;console.error(name,error);}
+              await context.close();
+            }
+            await browser.close();
+            if(failed)process.exitCode=1;
+          })().catch(error=>{console.error(error);process.exitCode=1;});
+          NODE
+      - name: Upload actual WebGL draft renders
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cash-real-world-review
+          path: review/
+          if-no-files-found: warn
+          retention-days: 14
