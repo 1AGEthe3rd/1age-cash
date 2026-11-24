@@ -78,8 +78,10 @@ function activate(name, open = true) {
 }
 function renderPanel(name) {
   title.textContent = ({balance:'Cash Balance',add:'Add Cash',activity:'Activity',use:'Use Cash',about:'About 1AGE Cash',menu:'1AGE'})[name] || '1AGE Cash';
+  // Restore focus to the original scene control, even after switching from
+  // the 1AGE hologram menu into its settings view while the dialog is open.
+  if (!dialog.open) panelTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   content.replaceChildren();
-  panelTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   hologramMenu?.setAttribute('aria-expanded', name === 'menu' ? 'true' : 'false');
   if (name === 'menu') {
     // Only Store and Blog belong in the universal first-party content group.
