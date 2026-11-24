@@ -94,15 +94,34 @@ jobs:
                     syntheticCashCanvas:!!document.querySelector('#cash-scene canvas'),
                     balance:document.querySelector('#cash-balance')?.textContent,
                     connection:document.querySelector('#cash-connection')?.textContent,
-                    numberOfCashActions:document.querySelectorAll('#cash-actions button').length
+                    numberOfCashActions:document.querySelectorAll('#cash-actions button').length,
+                    hologramMenu:!!document.querySelector('#oneage-hologram-menu .holo-face img'),
+                    fixedTopLogo:!!document.querySelector('.cash-header img'),
+                    navAboveWorld:(()=>{
+                      const b=document.querySelector('[data-action=add]');
+                      if(!b)return false;
+                      const r=b.getBoundingClientRect();
+                      const top=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+                      return top===b||b.contains(top);
+                    })()
                   };
                 });
                 console.log(name,{...state,frameCanvas,engineStatus},errors);
                 await page.screenshot({path:'review/cash-real-world-'+name+'.png',timeout:30000});
                 if(!frameCanvas||!state.world||!state.worldVisible||state.syntheticCashCanvas||
                    state.balance!=='—'||!state.connection?.includes('not connected')||
-                   state.numberOfCashActions!==4||errors.length)failed=true;
-                await page.locator('[data-action=add]').click();
+                   state.numberOfCashActions!==4||!state.hologramMenu||state.fixedTopLogo||
+                   !state.navAboveWorld||errors.length)failed=true;
+                await page.locator('#oneage-hologram-menu').click({timeout:7000});
+                const menu=page.locator('#cash-panel');
+                const store=menu.locator('a.holo-menu-link[href="https://1age.store/"]');
+                const blog=menu.locator('a.holo-menu-link[href="https://1age.blog/"]');
+                const expanded=await page.locator('#oneage-hologram-menu').getAttribute('aria-expanded');
+                const headerLogo=await page.locator('header.cash-header img').count();
+                if(!(await store.isVisible())||!(await blog.isVisible())||expanded!=='true'||headerLogo)failed=true;
+                await page.screenshot({path:'review/cash-holographic-menu-'+name+'.png',timeout:30000});
+                await page.locator('#close-panel').click({timeout:7000});
+                await page.locator('[data-action=add]').click({timeout:7000});
                 const panel=page.locator('#cash-panel');
                 const buttons=await panel.locator('button.panel-action').evaluateAll(nodes=>nodes.map(n=>n.disabled));
                 const details=await panel.locator('.pending-state').textContent();
