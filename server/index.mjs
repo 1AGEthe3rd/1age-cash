@@ -16,6 +16,7 @@ import {
 } from './policy.mjs';
 import { parseCatalog } from './catalog.mjs';
 import { redeemCash, RedemptionError } from './redemption.mjs';
+import { attachCashSite } from './static-site.mjs';
 
 const required = ['DATABASE_URL', 'AUTH_ISSUER', 'AUTH_AUDIENCE', 'AUTH_JWKS_URL'];
 for (const key of required) if (!process.env[key]) throw Error('Missing required environment configuration: ' + key);
@@ -298,6 +299,10 @@ app.post('/api/cash/webhook', express.raw({ type: 'application/json', limit: '64
     errorResponse(res, 503, 'Webhook deferred for secure review.');
   } finally { client?.release(); }
 });
+
+// The same-origin Cash page can be served from a future HTTPS API host.
+// No DNS change occurs by adding these routes.
+attachCashSite(app);
 
 const port = Number(process.env.PORT || 4242);
 app.listen(port, () => console.log('1AGE Cash sandbox API listening on port ' + port));
