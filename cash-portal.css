@@ -101,3 +101,30 @@ button{cursor:pointer;font:inherit;color:inherit}button:focus-visible,a:focus-vi
 #cash-actions{z-index:34}
 .hint{z-index:30}
 #cash-panel{z-index:40}
+
+/* Console-style Cash destination selector: no permanent toolbar over World's
+   original left/right joysticks, flight tools, or center Home controls. */
+.cash-wallet-trigger{font:inherit;cursor:pointer;pointer-events:auto;color:var(--pale);z-index:30;touch-action:manipulation;transition:transform .2s ease,box-shadow .2s ease}
+.cash-wallet-trigger:hover,.cash-wallet-trigger:focus-visible{transform:perspective(920px) rotateY(-7deg) translateY(-4px);box-shadow:0 0 34px #1bfd9c55,0 12px 40px #000a}
+.cash-wallet-trigger:active{transform:perspective(920px) rotateY(0deg) scale(.96)}
+.cash-open-cue{font-size:9px;color:#68f9b1;letter-spacing:.18em;margin-top:2px}
+#cash-stations{position:fixed;inset:0;margin:auto;width:min(454px,calc(100vw - 28px));max-height:min(84dvh,580px);padding:18px 20px 22px;border:1px solid #5afaacaa;border-radius:24px;background:linear-gradient(155deg,#051b13f8,#020a07f5);box-shadow:0 20px 110px #000e,0 0 52px #1bfd9c23;color:var(--pale);z-index:50}
+#cash-stations::backdrop{background:#0008;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+#cash-stations h2{font-size:22px;font-weight:600;margin:5px 0 14px;letter-spacing:-.015em}
+.station-heading{display:flex;align-items:center;justify-content:space-between}
+.station-heading .round-button{width:35px;height:35px}
+#cash-stations #cash-actions{position:static;transform:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0;padding:0;max-width:none;background:none;border:0;box-shadow:none;width:100%}
+#cash-stations #cash-actions button{width:100%;min-width:0;min-height:94px;border:1px solid #43d28b9e;border-radius:17px;background:linear-gradient(160deg,#0b4f35e9,#021811e7);color:#eafff4;transform:perspective(440px) rotateX(6deg);box-shadow:0 12px 18px #0007,0 0 20px #1bfd9c18;font-size:14px;font-weight:650;letter-spacing:.04em;transition:transform .18s ease,box-shadow .18s ease}
+#cash-stations #cash-actions button[aria-current="true"]{background:linear-gradient(160deg,#15845bdd,#06281be8);border-color:#acffd2;box-shadow:0 0 25px #1bfd9c60}
+#cash-stations #cash-actions button:is(:hover,:focus-visible){transform:perspective(440px) translateY(-6px) rotateX(0);box-shadow:0 0 35px #1bfd9c5c}
+#cash-stations #cash-actions button:active{transform:perspective(440px) translateY(1px) scale(.97)}
+/* Keep hint available to screen readers, but remove extra caption over real gameplay. */
+#cash-hint{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;padding:0;margin:-1px;border:0}
+@media(max-width:620px){.cash-wallet-trigger{max-width:49vw}.cash-wallet-trigger:hover,.cash-wallet-trigger:focus-visible{transform:perspective(900px) rotateY(-5deg)}}
+@media(max-height:480px){
+  #cash-stations{width:min(670px,calc(100vw - 28px));max-height:calc(100dvh - 24px);padding:10px 15px}
+  #cash-stations h2{font-size:16px;margin:0 0 6px}
+  #cash-stations #cash-actions{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+  #cash-stations #cash-actions button{min-height:66px;font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){.cash-wallet-trigger,#cash-stations #cash-actions button{transition:none!important}}

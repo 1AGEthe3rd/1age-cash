@@ -39,17 +39,28 @@
       </span>
       <span class="holo-shadow" aria-hidden="true"></span>
     </button>
-    <section id="cash-core-label" class="core-label" aria-live="polite">
+    <!-- The account hologram itself opens four cinematic Cash stations.
+         Keep the original World's gamepad and center controls fully unobstructed. -->
+    <button id="cash-core-label" class="core-label cash-wallet-trigger" type="button"
+      aria-haspopup="dialog" aria-controls="cash-stations" aria-label="Open Cash stations">
       <span class="eyebrow">YOUR CASH</span>
-      <strong id="cash-balance">—</strong>
+      <strong id="cash-balance" aria-live="polite">—</strong>
       <span id="cash-balance-caption">Sign in required for your balance</span>
-    </section>
-    <nav id="cash-actions" aria-label="Cash destinations">
-      <button type="button" data-action="balance" aria-current="true">Balance</button>
-      <button type="button" data-action="add">Add Cash</button>
-      <button type="button" data-action="activity">Activity</button>
-      <button type="button" data-action="use">Use Cash</button>
-    </nav>
+      <span class="cash-open-cue" aria-hidden="true">SELECT ◇</span>
+    </button>
+    <dialog id="cash-stations" aria-labelledby="cash-stations-title">
+      <div class="station-heading">
+        <span class="eyebrow">1AGE CASH</span>
+        <button id="close-stations" type="button" class="round-button" aria-label="Close Cash stations">×</button>
+      </div>
+      <h2 id="cash-stations-title">Choose a station</h2>
+      <nav id="cash-actions" aria-label="Cash stations">
+        <button type="button" data-action="balance" aria-current="true">Balance</button>
+        <button type="button" data-action="add">Add Cash</button>
+        <button type="button" data-action="activity">Activity</button>
+        <button type="button" data-action="use">Use Cash</button>
+      </nav>
+    </dialog>
     <p class="hint" id="cash-hint">Explore the real 1AGE World. Open a Cash station to manage credits.</p>
     <dialog id="cash-panel" aria-labelledby="cash-panel-title">
       <div class="panel-heading">
