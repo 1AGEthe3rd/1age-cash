@@ -12,6 +12,8 @@ const hint = document.querySelector('#cash-hint');
 const actions = [...document.querySelectorAll('#cash-actions button')];
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const tabs = ['balance', 'add', 'activity', 'use'];
+const hologramMenu = document.querySelector('#oneage-hologram-menu');
+let panelTrigger = null;
 const state = { account: null, connected: false, checkoutEnabled: false, busy: false, selected: 'balance' };
 const amount = n => (n / 100).toFixed(2);
 const textNode = (tag, value, className = '') => {
@@ -75,9 +77,29 @@ function activate(name, open = true) {
   if (open) renderPanel(name);
 }
 function renderPanel(name) {
-  title.textContent = ({balance:'Cash Balance',add:'Add Cash',activity:'Activity',use:'Use Cash',about:'About 1AGE Cash'})[name] || '1AGE Cash';
+  title.textContent = ({balance:'Cash Balance',add:'Add Cash',activity:'Activity',use:'Use Cash',about:'About 1AGE Cash',menu:'1AGE'})[name] || '1AGE Cash';
   content.replaceChildren();
-  if (name === 'about') {
+  panelTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  hologramMenu?.setAttribute('aria-expanded', name === 'menu' ? 'true' : 'false');
+  if (name === 'menu') {
+    // Only Store and Blog belong in the universal first-party content group.
+    // Home and settings are separate utilities, not additional Store/Blog apps.
+    const links = textNode('nav', undefined, 'holo-menu-links');
+    links.setAttribute('aria-label', '1AGE Store and Blog');
+    for (const [name,href] of [['Store','https://1age.store/'],['Blog','https://1age.blog/']]) {
+      const anchor = textNode('a', name, 'holo-menu-link');
+      anchor.href = href; anchor.rel = 'noopener noreferrer';
+      links.append(anchor);
+    }
+    content.append(links);
+    const utilities = textNode('div', undefined, 'holo-menu-utilities');
+    const settings = textNode('button', 'Cash settings', 'holo-menu-utility');
+    settings.type='button'; settings.addEventListener('click',()=>renderPanel('about'));
+    const home = textNode('a','Back to 1AGE.com','holo-menu-utility');
+    home.href='https://1age.com/'; home.rel='noopener noreferrer';
+    utilities.append(settings,home);
+    content.append(utilities);
+  } else if (name === 'about') {
     content.append(paragraph('1AGE Cash is an internal account credit for eligible experiences inside 1AGE. A wallet and blockchain address are not required.'));
     content.append(paragraph('It is separate from the $1AGE cryptocurrency and from 1AGE Exchange. Cash is not a deposit, investment, or transferable digital currency.'));
   } else if (name === 'balance') {
@@ -137,11 +159,12 @@ function renderPanel(name) {
   if (!dialog.open) dialog.showModal();
 }
 
-document.querySelector('#cash-info').addEventListener('click', () => renderPanel('about'));
+hologramMenu?.addEventListener('click', () => renderPanel('menu'));
 document.querySelector('#close-panel').addEventListener('click', () => dialog.close());
 actions.forEach(button => button.addEventListener('click', () => activate(button.dataset.action)));
 dialog.addEventListener('close', () => {
-  actions.find(button => button.dataset.action === state.selected)?.focus({preventScroll:true});
+  hologramMenu?.setAttribute('aria-expanded','false');
+  panelTrigger?.focus({preventScroll:true});
 });
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape' && dialog.open) dialog.close();
