@@ -1,0 +1,17 @@
+{
+  "name": "1age-cash-hosted",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "server"
+  ],
+  "scripts": {
+    "start": "node server/index.mjs",
+    "test": "node --test server/tests/*.test.mjs",
+    "check": "node --check server/index.mjs && node --check server/catalog.mjs && node --check server/redemption.mjs"
+  }
+}
