@@ -1,5 +1,5 @@
-import * as THREE from './experiences/shared/vendor/three.module.js';
-import { subscribeInput } from './experiences/shared/gamepad.mjs';
+// Cash-native account actions over the *actual* approved 1AGE World runtime.
+// Never invent a replacement sphere, starfield, or generic Godot/WebGL fallback.
 
 const root = document.querySelector('#cash-scene');
 const status = document.querySelector('#cash-connection');
@@ -140,7 +140,9 @@ function renderPanel(name) {
 document.querySelector('#cash-info').addEventListener('click', () => renderPanel('about'));
 document.querySelector('#close-panel').addEventListener('click', () => dialog.close());
 actions.forEach(button => button.addEventListener('click', () => activate(button.dataset.action)));
-dialog.addEventListener('close', () => root.focus({preventScroll:true}));
+dialog.addEventListener('close', () => {
+  actions.find(button => button.dataset.action === state.selected)?.focus({preventScroll:true});
+});
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape' && dialog.open) dialog.close();
   else if (!dialog.open && !event.target.matches('input,textarea,button,a')) {
@@ -154,185 +156,22 @@ function selectOffset(delta) {
   activate(tabs[(index + delta + tabs.length) % tabs.length], false);
 }
 
-let renderer, scene, camera, core, stations = [], frames = 0, previousTime = 0, angle = 0, pitch = .10, dragging = null;
-const objects = [];
-const selectRay = new THREE.Raycaster();
-const pointer = new THREE.Vector2();
-const isCoarse = matchMedia('(pointer:coarse)').matches;
-
-function wordSprite(value, width=768, height=160) {
-  const canvas = document.createElement('canvas');
-  canvas.width=width; canvas.height=height;
-  const c=canvas.getContext('2d');
-  c.clearRect(0,0,width,height);
-  c.font='650 62px system-ui';
-  c.fillStyle='#dfffea';c.textAlign='center';c.fillText(value,width/2,height*.65);
-  const texture=new THREE.CanvasTexture(canvas);
-  texture.colorSpace=THREE.SRGBColorSpace;
-  const mesh=new THREE.Mesh(new THREE.PlaneGeometry(2.8,.6),new THREE.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false}));
-  return mesh;
-}
-function ring(radius, color, thickness=.018, segments=80) {
-  const m=new THREE.Mesh(
-    new THREE.TorusGeometry(radius,thickness,7,segments),
-    new THREE.MeshBasicMaterial({color,transparent:true,opacity:.82,depthWrite:false})
-  );
-  m.rotation.x=Math.PI/2;
-  return m;
-}
-function createScene() {
-  renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'low-power'});
-  renderer.outputColorSpace=THREE.SRGBColorSpace;
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1,1.5));
-  root.append(renderer.domElement);
-  scene=new THREE.Scene();
-  camera=new THREE.PerspectiveCamera(48,1,.1,100);
-  scene.add(new THREE.HemisphereLight(0x86f9bb,0x07140c,2.2));
-  const key=new THREE.PointLight(0xcffff0,68,35);key.position.set(4,7,7);scene.add(key);
-  const fill=new THREE.PointLight(0x0bfd83,30,23);fill.position.set(-6,0,5);scene.add(fill);
-  // An original 3D vault, not a copied World scene or a flat CSS circle.
-  const vaultMaterial=new THREE.MeshPhysicalMaterial({
-    color:0x125f3a,metalness:.54,roughness:.20,transparent:true,opacity:.88,
-    clearcoat:1,clearcoatRoughness:.15,emissive:0x08351f,emissiveIntensity:.6
+// Actual 1AGE World export is loaded as a separate origin. Godot and its original
+// six platforms, Earth, ring, stars and exact gamepad stay under World's control.
+// Cash account data/tokens are NEVER sent through postMessage or into the iframe.
+// A successful iframe 'load' event only means its HTML loaded, NOT that Godot,
+ // all World resources or the rotating globe are fully ready.
+const worldFrame = document.querySelector('#oneage-world');
+const worldStatus = document.querySelector('#world-status');
+if (worldFrame && worldStatus) {
+  worldFrame.addEventListener('load', () => {
+    worldStatus.hidden = true;
+  }, {once:true});
+  worldFrame.addEventListener('error', () => {
+    worldStatus.textContent = '1AGE World could not load. Use Open World to visit the real environment.';
+    worldStatus.hidden = false;
   });
-  core=new THREE.Group();
-  const shell=new THREE.Mesh(new THREE.IcosahedronGeometry(1.75,2),vaultMaterial);
-  core.add(shell);
-  const inner=new THREE.Mesh(new THREE.IcosahedronGeometry(1.45,1),
-    new THREE.MeshStandardMaterial({color:0x05130b,emissive:0x12774b,emissiveIntensity:.20,wireframe:true}));
-  core.add(inner);
-  for (const [r,tilt] of [[2.18,.13],[2.4,-.26],[2.62,.42]]) {
-    const orbit=ring(r,0x1bfd9c,r===2.18?.020:.009);
-    orbit.rotation.set(Math.PI/2+tilt,0,tilt*1.5);
-    core.add(orbit);
-  }
-  core.position.y=.25;scene.add(core);
-  const stage=new THREE.Mesh(new THREE.CylinderGeometry(4.9,5.25,.27,84),
-    new THREE.MeshStandardMaterial({color:0x051910,metalness:.72,roughness:.28}));
-  stage.position.y=-2.5;scene.add(stage);
-  const edge=ring(5.02,0x1bfd9c,.027,120);
-  edge.position.y=-2.34;scene.add(edge);
-  const rail=ring(6.7,0x28634d,.012,120);
-  rail.position.y=-2.4;scene.add(rail);
-  const nodeMat=new THREE.MeshStandardMaterial({
-    color:0x0d4932,metalness:.56,roughness:.29,emissive:0x09291b,emissiveIntensity:.45
-  });
-  const stationRadius = 4.4;
-  for(let i=0;i<tabs.length;i++){
-    const a=i*Math.PI/2 + Math.PI/4;
-    const group=new THREE.Group();
-    group.position.set(Math.sin(a)*stationRadius,-1.55,Math.cos(a)*stationRadius);
-    const stone=new THREE.Mesh(new THREE.CylinderGeometry(.66,.8,.23,32),nodeMat);
-    group.add(stone);
-    const halo=ring(.77,0x1bfd9c,.023,52);
-    halo.position.y=.16;group.add(halo);
-    const gem=new THREE.Mesh(new THREE.OctahedronGeometry(.48,1),
-      new THREE.MeshStandardMaterial({color:i===1?0x6cfbc0:0x215f45,metalness:.64,roughness:.20,emissive:0x0d7041,emissiveIntensity:.32}));
-    gem.position.y=.75;group.add(gem);
-    const tag=wordSprite(['BALANCE','ADD CASH','ACTIVITY','USE CASH'][i]);
-    tag.position.set(0,-.32,0);tag.scale.set(.46,.46,.46);
-    group.add(tag);
-    group.userData.tab=tabs[i];
-    scene.add(group);
-    stations.push({group,gem,halo});
-    objects.push(stone,gem);
-  }
-  let seed=1271;
-  const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};
-  const coords=[];
-  for(let i=0;i<380;i++)coords.push((random()-.5)*50,(random()-.5)*35,(random()-.5)*35-14);
-  const geometry=new THREE.BufferGeometry();
-  geometry.setAttribute('position',new THREE.Float32BufferAttribute(coords,3));
-  scene.add(new THREE.Points(geometry,new THREE.PointsMaterial({color:0x8cbba3,size:.028})));
-  const ground=ring(9,0x16392a,.008,180);
-  ground.position.y=-2.5;scene.add(ground);
-  resize();
-  new ResizeObserver(resize).observe(root);
-  renderer.domElement.addEventListener('pointerdown', event=>{
-    if(event.button!==0) return;
-    dragging={id:event.pointerId,x:event.clientX,y:event.clientY,moved:false};
-    renderer.domElement.setPointerCapture(event.pointerId);
-  });
-  renderer.domElement.addEventListener('pointermove',event=>{
-    if(dragging?.id!==event.pointerId)return;
-    const dx=event.clientX-dragging.x,dy=event.clientY-dragging.y;
-    if(Math.abs(dx)+Math.abs(dy)>3)dragging.moved=true;
-    angle-=dx*.006;
-    pitch=Math.max(-.45,Math.min(.55,pitch+dy*.003));
-    dragging.x=event.clientX;dragging.y=event.clientY;
-  });
-  renderer.domElement.addEventListener('pointerup',event=>{
-    if(!dragging||dragging.id!==event.pointerId)return;
-    const moved=dragging.moved;dragging=null;
-    if(moved)return;
-    const r=renderer.domElement.getBoundingClientRect();
-    pointer.x=((event.clientX-r.left)/r.width)*2-1;
-    pointer.y=-((event.clientY-r.top)/r.height)*2+1;
-    selectRay.setFromCamera(pointer,camera);
-    const hits=selectRay.intersectObjects(objects);
-    if(hits.length){
-      let parent=hits[0].object;
-      while(parent&&!parent.userData?.tab)parent=parent.parent;
-      if(parent?.userData?.tab)activate(parent.userData.tab);
-    }
-  });
-  renderer.domElement.addEventListener('pointercancel',()=>{dragging=null});
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!frames)frames=requestAnimationFrame(draw)});
-  frames=requestAnimationFrame(draw);
 }
-function resize() {
-  if(!renderer)return;
-  const w=Math.max(1,root.clientWidth),h=Math.max(1,root.clientHeight);
-  camera.aspect=w/h;
-  camera.fov=w/h<.65?59:48;
-  camera.position.set(0,2.1,w/h<.65?25:14);
-  camera.lookAt(0,-.10,0);
-  camera.updateProjectionMatrix();
-  renderer.setSize(w,h,false);
-}
-function draw(now) {
-  frames=0;
-  if(document.hidden)return;
-  const dt=Math.min(.05,Math.max(0,(now-previousTime)/1000||0));previousTime=now;
-  if(!reducedMotion.matches){
-    core.rotation.y+=dt*.10;
-    stations.forEach((station,i)=>{
-      station.gem.rotation.y+=dt*.23;
-      station.gem.position.y=.72+Math.sin(now/1000+i*2)*.04;
-    });
-  }
-  for(const station of stations){
-    station.halo.material.color.setHex(station.group.userData.tab===state.selected?0xe2ffdc:0x1bfd9c);
-  }
-  camera.position.y=2.1+pitch*5;
-  const dist=camera.aspect<.65?25:14;
-  camera.position.z=Math.cos(angle)*dist;
-  camera.position.x=Math.sin(angle)*dist;
-  camera.lookAt(0,-.1,0);
-  renderer.render(scene,camera);
-  frames=requestAnimationFrame(draw);
-}
-const unsubscribe=subscribeInput((input,dt)=>{
-  if(dialog.open)return;
-  angle+=input.look.x*dt*1.4;
-  pitch=Math.max(-.45,Math.min(.55,pitch+input.look.y*dt*.75));
-  if(Math.abs(input.move.x)>.85&&!state.lastNavPressed){
-    selectOffset(input.move.x>0?1:-1);
-    state.lastNavPressed=true;
-  }
-  if(Math.abs(input.move.x)<.25)state.lastNavPressed=false;
-});
-try{createScene()}catch(error){
-  root.querySelector('.scene-fallback').hidden=false;
-  console.warn('Cash 3D scene not available',error?.message);
-}
-activate('balance',false);
+activate('balance', false);
 loadAccount();
-// Tokens remain in memory; the login integration will notify this UI after
-// secure Page identity becomes available. No user credentials are collected.
-window.addEventListener('oneage:identity-ready',()=>loadAccount());
-addEventListener('pagehide',()=>{
-  unsubscribe();
-  cancelAnimationFrame(frames);
-  renderer?.dispose();
-});
+window.addEventListener('oneage:identity-ready', () => loadAccount());
