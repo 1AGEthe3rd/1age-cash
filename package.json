@@ -12,6 +12,6 @@
   "scripts": {
     "start": "node server/index.mjs",
     "test": "node --test server/tests/*.test.mjs",
-    "check": "node --check server/index.mjs && node --check server/catalog.mjs && node --check server/redemption.mjs"
+    "check": "node --check server/index.mjs && node --check server/catalog.mjs && node --check server/redemption.mjs && node --check server/identity.mjs"
   }
 }
