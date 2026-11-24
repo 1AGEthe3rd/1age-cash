@@ -106,9 +106,10 @@ app.post('/api/cash/checkout', json, identity, async (req, res) => {
   } catch {
     return errorResponse(res, 400, 'Invalid test checkout request.');
   }
-  const client = await pool.connect();
+  let client;
   const orderId = randomUUID();
   try {
+    client = await pool.connect();
     await client.query('BEGIN');
     await account(req.ownerId, client);
     const locked = await client.query('SELECT balance_minor, frozen FROM cash_accounts WHERE owner_id=$1 FOR UPDATE', [req.ownerId]);
@@ -135,10 +136,10 @@ app.post('/api/cash/checkout', json, identity, async (req, res) => {
     }
     await client.query('COMMIT');
   } catch (error) {
-    await client.query('ROLLBACK').catch(() => {});
+    if (client) await client.query('ROLLBACK').catch(() => {});
     console.error('cash checkout reservation error', error.message);
     return errorResponse(res, 503, 'Unable to create test checkout.');
-  } finally { client.release(); }
+  } finally { client?.release(); }
   try {
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
@@ -173,8 +174,9 @@ app.post('/api/cash/webhook', express.raw({ type: 'application/json', limit: '64
   }
   // Sandbox test events only, never mix live and test ledgers.
   if (event.livemode !== false) return errorResponse(res, 400, 'Live payment events are not accepted.');
-  const client = await pool.connect();
+  let client;
   try {
+    client = await pool.connect();
     await client.query('BEGIN');
     const eventInsert = await client.query(
       'INSERT INTO cash_stripe_events(event_id,type) VALUES($1,$2) ON CONFLICT DO NOTHING RETURNING event_id',
@@ -246,10 +248,10 @@ app.post('/api/cash/webhook', express.raw({ type: 'application/json', limit: '64
     await client.query('COMMIT');
     res.json({ received: true });
   } catch (error) {
-    await client.query('ROLLBACK').catch(() => {});
+    if (client) await client.query('ROLLBACK').catch(() => {});
     console.error('cash webhook deferred for investigation', event.id, event.type, error.message);
     errorResponse(res, 503, 'Webhook deferred for secure review.');
-  } finally { client.release(); }
+  } finally { client?.release(); }
 });
 
 const port = Number(process.env.PORT || 4242);
