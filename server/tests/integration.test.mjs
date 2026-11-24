@@ -64,6 +64,16 @@ if (!url) {
       child.stderr.on('data',d=>logs+=d.toString());
       child.stdout.on('data',d=>logs+=d.toString());
       await waitUntilReady();
+      // Future same-origin hosting must serve the original cosmic Cash entry
+      // without exposing private server source files or database migrations.
+      const site = await fetch('http://127.0.0.1:4329/');
+      assert.equal(site.status, 200);
+      const markup = await site.text();
+      assert.ok(markup.includes('https://1age.world/?platform=cash'));
+      assert.ok(markup.includes('cash-portal.mjs'));
+      assert.equal((await fetch('http://127.0.0.1:4329/server/index.mjs')).status,404);
+      assert.equal((await fetch('http://127.0.0.1:4329/server/schema.sql')).status,404);
+      assert.equal((await fetch('http://127.0.0.1:4329/docs/CASH-3D-STRIPE-SANDBOX-001.md')).status,404);
       const noAuth=await fetch('http://127.0.0.1:4329/api/cash/me');
       assert.equal(noAuth.status,401);
       const paidEvent={
