@@ -20,7 +20,7 @@
         src="https://1age.world/?platform=cash"
         allow="autoplay; gamepad" loading="eager"
         referrerpolicy="strict-origin-when-cross-origin"></iframe>
-      <p id="world-status" class="world-status" role="status">Entering the original 1AGE World…</p>
+      <p id="world-status" class="world-status" role="status" hidden></p>
       <a class="world-direct" href="https://1age.world/?platform=cash" target="_blank" rel="noopener noreferrer"
         aria-label="Open the original 1AGE World in a new tab">Open World <span aria-hidden="true">↗</span></a>
     </div>
@@ -61,7 +61,7 @@
         <button type="button" data-action="use">Use Cash</button>
       </nav>
     </dialog>
-    <p class="hint" id="cash-hint">Explore the real 1AGE World. Open a Cash station to manage credits.</p>
+    <p class="hint" id="cash-hint" style="display:none"></p>
     <dialog id="cash-panel" aria-labelledby="cash-panel-title">
       <div class="panel-heading">
         <span class="eyebrow">1AGE CASH</span>
