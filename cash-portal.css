@@ -1,7 +1,7 @@
 :root{color-scheme:dark;--green:#1bfd9c;--pale:#e2ffdc;--black:#000;--muted:#9dbca8}
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--black);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--pale)}
 button{cursor:pointer;font:inherit;color:inherit}button:focus-visible,a:focus-visible{outline:2px solid var(--green);outline-offset:4px}
-#cash-app{position:fixed;inset:0;overflow:hidden}#cash-scene{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 38%,#081d14 0%,#020704 48%,#000 90%);touch-action:none;outline-offset:-3px}
+#cash-app{position:fixed;inset:0;overflow:hidden;isolation:isolate}#cash-scene{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 38%,#081d14 0%,#020704 48%,#000 90%);touch-action:none;outline-offset:-3px}
 #cash-scene canvas{width:100%;height:100%;display:block}#cash-scene .scene-fallback:not([hidden]){display:block;position:absolute;top:45%;left:10%;width:80%;text-align:center;font-size:14px}
 .cash-header{position:absolute;top:calc(env(safe-area-inset-top) + 11px);left:calc(env(safe-area-inset-left) + 14px);right:calc(env(safe-area-inset-right) + 14px);display:flex;align-items:center;justify-content:space-between;gap:12px;pointer-events:none;z-index:5}
 .cash-header>*{pointer-events:auto}.brand{display:inline-flex;align-items:center;gap:10px;color:var(--pale);text-decoration:none}.brand img{border:1px solid #1bfd9c6e;border-radius:50%;background:#030b06}.brand span{display:flex;flex-direction:column;line-height:1.05;letter-spacing:.13em;font-size:14px}.brand small{font-size:9px;color:var(--green);letter-spacing:.35em;margin-top:4px}
@@ -25,7 +25,7 @@ button{cursor:pointer;font:inherit;color:inherit}button:focus-visible,a:focus-vi
 
 /* WORLD SOURCE OF TRUTH: no duplicate or procedurally generated globe or stars.
    The original 1age.world Godot scene renders below Cash's own account stations. */
-#cash-scene{background:#000;touch-action:auto;overflow:hidden}
+#cash-scene{z-index:0;background:#000;touch-action:auto;overflow:hidden}
 .world-host iframe{position:absolute;inset:0;display:block;width:100%;height:100%;border:0;background:#000;touch-action:auto}
 .world-status{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);width:min(300px,85vw);text-align:center;background:#020905db;color:#e2ffdc;border:1px solid #1bfd9c66;border-radius:16px;padding:14px;font-size:12px;pointer-events:none}
 .world-status[hidden]{display:none}
@@ -35,9 +35,9 @@ button{cursor:pointer;font:inherit;color:inherit}button:focus-visible,a:focus-vi
 .core-label strong{font-size:clamp(29px,4.2vw,44px)}
 #cash-balance-caption{font-size:11px}
 #cash-actions{bottom:calc(env(safe-area-inset-bottom) + 129px);border:0;border-radius:0;background:transparent;box-shadow:none;gap:10px;transform:translateX(-50%);padding:0;max-width:95vw}
-#cash-actions button{min-width:97px;min-height:47px;border:1px solid #49b98880;border-radius:12px;background:linear-gradient(160deg,#082b1fcf,#030a08e6);box-shadow:0 10px 20px #000a,0 0 15px #1bfd9c23;transform:perspective(640px) rotateX(14deg);transition:transform .15s ease,box-shadow .15s ease;color:#edfff4;font-size:12px;font-weight:600;padding:11px 12px}
+#cash-actions button{min-width:97px;min-height:47px;border:1px solid #49b98880;border-radius:12px;background:linear-gradient(160deg,#082b1fcf,#030a08e6);box-shadow:0 10px 20px #000a,0 0 15px #1bfd9c23;touch-action:manipulation;transition:box-shadow .15s ease;color:#edfff4;font-size:12px;font-weight:600;padding:11px 12px}
 #cash-actions button[aria-current="true"]{border-color:#85ffb9;background:linear-gradient(160deg,#28df9cd9,#095b3cbf);color:#e2ffdc;box-shadow:0 0 22px #1bfd9c55,0 12px 24px #000c}
-#cash-actions button:hover{transform:perspective(640px) rotateX(6deg) translateY(-4px)}
+#cash-actions button:hover{box-shadow:0 0 20px #1bfd9c66}
 .hint{bottom:calc(env(safe-area-inset-bottom) + 188px);color:#daeedc;text-shadow:0 2px 9px #000;font-size:10px}
 #cash-panel{bottom:calc(env(safe-area-inset-bottom) + 193px)}
 @media(max-width:620px){

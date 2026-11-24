@@ -102,7 +102,9 @@ jobs:
                 if(!frameCanvas||!state.world||!state.worldVisible||state.syntheticCashCanvas||
                    state.balance!=='—'||!state.connection?.includes('not connected')||
                    state.numberOfCashActions!==4||errors.length)failed=true;
-                await page.locator('[data-action=add]').click();
+                const add=page.locator('[data-action=add]');
+                if(mobile) await add.tap({timeout:10000});
+                else await add.click({timeout:10000});
                 const panel=page.locator('#cash-panel');
                 const buttons=await panel.locator('button.panel-action').evaluateAll(nodes=>nodes.map(n=>n.disabled));
                 const details=await panel.locator('.pending-state').textContent();
