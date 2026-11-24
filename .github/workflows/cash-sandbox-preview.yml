@@ -103,6 +103,26 @@ jobs:
                       const r=b.getBoundingClientRect();
                       const top=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
                       return top===b||b.contains(top);
+                    })(),
+                    diagnostic:(()=>{
+                      const nav=document.querySelector('#cash-actions'),
+                        frame=document.querySelector('#oneage-world'),
+                        app=document.querySelector('#cash-app');
+                      const b=nav.querySelector('[data-action=add]');
+                      const rect=b.getBoundingClientRect();
+                      const top=document.elementFromPoint(rect.x+rect.width/2,rect.y+rect.height/2);
+                      return {
+                        pageUrl:location.href,
+                        fullscreen:document.fullscreenElement?.outerHTML?.slice(0,200)||null,
+                        navZ:getComputedStyle(nav).zIndex,
+                        navPosition:getComputedStyle(nav).position,
+                        appPosition:getComputedStyle(app).position,
+                        frameZ:getComputedStyle(frame).zIndex,
+                        framePosition:getComputedStyle(frame).position,
+                        hostZ:getComputedStyle(frame.parentElement).zIndex,
+                        atCashButton:top?.outerHTML?.slice(0,230),
+                        navRectangle:{x:rect.x,y:rect.y,width:rect.width,height:rect.height}
+                      };
                     })()
                   };
                 });
