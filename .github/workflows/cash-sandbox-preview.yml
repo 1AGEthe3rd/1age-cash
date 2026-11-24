@@ -68,14 +68,14 @@ jobs:
               try {
                 await page.goto('http://127.0.0.1:4173/',{waitUntil:'domcontentloaded',timeout:30000});
                 const src=await page.locator('#oneage-world').getAttribute('src');
-                if(src!=='https://1age.world/?platform=cash')failed=true;
+                if(src!=='https://1age.world/?entry=cash')failed=true;
                 // The authentic World engine, celestial backdrop and gamepad
                 // remain in the original cross-origin Godot frame.
                 let frameCanvas=false,engineStatus='unknown';
                 try {
                   await page.frameLocator('#oneage-world').locator('#canvas').waitFor({timeout:30000,state:'attached'});
                   frameCanvas=true;
-                  await page.waitForTimeout(13000);
+                  await page.frameLocator('#oneage-world').locator('#status').waitFor({timeout:45000,state:'hidden'});
                   engineStatus=await page.frameLocator('#oneage-world').locator('body').evaluate(body=>{
                     const notice=body.querySelector('#status-notice')?.textContent||'';
                     return {

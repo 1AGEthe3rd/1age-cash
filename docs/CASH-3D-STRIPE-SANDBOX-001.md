@@ -60,3 +60,13 @@ Apply server/schema.sql first. The backend must be reverse-proxied with TLS and 
 - Obtain a separate explicit authorization for any later real-money launch.
 
 **Status: unmerged, non-monetary foundation. Not yet a fully operational payment or credit service.**
+
+## Original World integration
+
+The Cash draft embeds `https://1age.world/?entry=cash` from the restored 1AGE World export. The published Godot scene reads the `entry` parameter. Earlier app wrappers use `platform`, which the restored export does not read. The iframe delegates gamepad and fullscreen support to World. Account panels are an overlay on the same Cash origin. The draft does not send credentials into World or change the ledger and sandbox server.
+
+### Shared rule for other 1AGE apps
+
+Use the approved World export for the real rotating Earth, starfield, and controls. Each app needs a verified dedicated World platform and must open that platform. A URL parameter alone does not establish that a platform exists or has the right spawn. Retain each app's working functionality and link it at its World platform. Keep the Search and Studio navigation scoped to their established roles. Do not substitute generic scenes or remove existing app functionality.
+
+The source audit found the legacy `platform` parameter in Space, Games, Quest, Exchange, Cash, Store, Shop, Blog, Plus, Design and App. Page has its own orbital identity renderer. Confirm each platform in the approved World export before porting the Cash pattern. Preserve Page's profiles and discovery, and leave Space's HQ1 route and the Studio dial accessible.
