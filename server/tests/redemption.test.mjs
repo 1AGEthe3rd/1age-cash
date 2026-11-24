@@ -1,4 +1,4 @@
-import test from 'node:test';
+import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
@@ -36,6 +36,7 @@ if (!dbUrl) {
 } else {
   const { default: pg } = await import('pg');
   const pool = new pg.Pool({ connectionString: dbUrl });
+  after(async () => { await pool.end(); });
   const initSchema = async() => {
     const root = dirname(dirname(fileURLToPath(import.meta.url)));
     await pool.query(await readFile(join(root, 'schema.sql'), 'utf8'));
