@@ -64,6 +64,24 @@ if (!url) {
       child.stderr.on('data',d=>logs+=d.toString());
       child.stdout.on('data',d=>logs+=d.toString());
       await waitUntilReady();
+      // Future same-origin hosting must serve the original cosmic Cash entry
+      // without exposing private server source files or database migrations.
+      const site = await fetch('http://127.0.0.1:4329/');
+      assert.equal(site.status, 200);
+      const markup = await site.text();
+      assert.ok(markup.includes('https://1age.world/?platform=cash'));
+      assert.ok(markup.includes('cash-portal.mjs'));
+      assert.equal((await fetch('http://127.0.0.1:4329/server/index.mjs')).status,404);
+      assert.equal((await fetch('http://127.0.0.1:4329/server/schema.sql')).status,404);
+      assert.equal((await fetch('http://127.0.0.1:4329/docs/CASH-3D-STRIPE-SANDBOX-001.md')).status,404);
+      const catalogResponse=await fetch('http://127.0.0.1:4329/api/cash/catalog');
+      assert.equal(catalogResponse.status,200);
+      assert.deepEqual(await catalogResponse.json(),{items:[],redemption_enabled:false});
+      const forbidden=await fetch('http://127.0.0.1:4329/api/cash/redeem',{
+        method:'POST',headers:{'content-type':'application/json'},
+        body:JSON.stringify({sku:'test_avatar',request_key:randomUUID()})
+      });
+      assert.equal(forbidden.status,401,'Unauthenticated redemption must never be accepted');
       const noAuth=await fetch('http://127.0.0.1:4329/api/cash/me');
       assert.equal(noAuth.status,401);
       const paidEvent={
