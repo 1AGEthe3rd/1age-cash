@@ -12,7 +12,7 @@ function show(tab='home'){
  if(tab==='home'){
  const img=make('img','');img.src=icon;img.alt='';img.width=56;img.height=56;
  make('div','—').className='cash-value';make('p','Secure account not connected in this preview.');
- button('Add Cash',()=>show('add'));button('Activity',()=>show('activity'));button('Use Cash',()=>show('use'));link('Open existing Cash account interface','../');
+ button('Add Cash',()=>show('add'));button('Activity',()=>show('activity'));button('Use Cash',()=>show('use'));link('Open existing Cash account interface','../account.html');
  }else if(tab==='add'){
  make('p','Choose an example amount. No order or charge will be created.');
  const group=make('div','');group.className='cash-amounts';let choice=null;
@@ -22,13 +22,13 @@ function show(tab='home'){
  make('p','Secure identity, verified payment processing and ledger approval are required before real purchases can be enabled.');
  button('Back',()=>show());
  }else if(tab==='activity'){
- make('p','No secure account connected. Real activity is not available in this preview.');link('Open existing Cash account interface','../');button('Back',()=>show());
+ make('p','No secure account connected. Real activity is not available in this preview.');link('Open existing Cash account interface','../account.html');button('Back',()=>show());
  }else if(tab==='use'){
  make('p','Cash is intended for eligible first-party digital purchases and rewards. Spending is not enabled here.');
  for(const [n,url] of [['Games','https://1age.games/'],['Quest','https://1age.quest/'],['Space','https://1age.space/']])link(n,url);
  button('Back',()=>show());
  }else{
- link('1AGE World','https://1age.world/');link('1AGE.com','https://1age.com/');link('Existing Cash interface','../');
+ link('1AGE World','https://1age.world/');link('1AGE.com','https://1age.com/');link('Existing Cash interface','../account.html');
  const label=make('label','Graphics resolution');const select=make('select','',label);for(const [n,v] of [['Low','0.8'],['Balanced','1.5'],['High','2']])select.add(new Option(n,v));select.value=String(quality);select.onchange=()=>{quality=Number(select.value);resize();};button('Cash',()=>show());
  }
  make('p','Internal account credits · not cryptocurrency or withdrawable funds.');
